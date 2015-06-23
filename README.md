@@ -5,6 +5,7 @@ http://stackoverflow.com/questions/13826803/calling-javascript-function-from-a-c
 
 * node v0.12.2
 
-* node-gyp configure --msvs_version=2012
-* node-gyp build --msvs_version=2012
+* build
+    node-gyp configure --msvs_version=2012
+    node-gyp build --msvs_version=2012
 
