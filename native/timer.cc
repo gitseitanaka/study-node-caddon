@@ -3,24 +3,30 @@
 #include <uv.h>
 #include <node.h>
 
+using namespace v8;
+
+//--------------------------------------------------
+// Other info
+//
 // C:\Users\tanakahi\.node-gyp\0.12.2
-
 // I know this question is a bit old, but there has been a pretty major update in nodejs v0.10 to v0.12.
-//http://stackoverflow.com/questions/13826803/calling-javascript-function-from-a-c-callback-in-v8
-//https://github.com/felixge/node-memory-leak-tutorial
+//  http://stackoverflow.com/questions/13826803/calling-javascript-function-from-a-c-callback-in-v8
+//  https://github.com/felixge/node-memory-leak-tutorial
 
-//http://tips.hecomi.com/entry/20121021/1350819390
+//  ã“ã®ã‚³ãƒ¼ãƒ‰ã®ãƒ™ãƒ¼ã‚¹
+//  http://tips.hecomi.com/entry/20121021/1350819390
 
-// http://izs.me/v8-docs/main.html ”ñŒö®H ŒÃ‚¢B 
+// èª°ã‹ãŒä½œæˆã—ãŸæ—§Versionã®v8ãƒªãƒ•ã‚¡ãƒ¬ãƒ³ã‚¹ã€‚å¤ã„ã€‚
+// http://izs.me/v8-docs/main.html 
 
-
+// googleã®v8æ¦‚ç•¥èª¬æ˜
 // https://developers.google.com/v8/embed
 
 
-
-using namespace v8;
-
-// ƒXƒŒƒbƒhŠÔ‚Å‚â‚è‚Æ‚è‚·‚éƒf[ƒ^i”CˆÓj
+//---------------------------
+//
+// ä¿å­˜ç”¨å‹
+//
 struct my_struct
 {
 	int interval;
@@ -28,33 +34,26 @@ struct my_struct
 	Persistent<Function> callback;
 };
 
-// •ÊƒXƒŒƒbƒh‚ÅÀs‚·‚é”ñ“¯ŠúƒvƒƒZƒX
-// ‚±‚Ì’†‚Å v8 ‚Ì¢ŠE‚É“ü‚é‚±‚Æ‚Ío—ˆ‚È‚¢
-void AsyncWork(uv_work_t* req) {
-	std::cout << "AsyncWork\t: " << std::this_thread::get_id() << std::endl;
-
-	// ƒf[ƒ^‚ğ”ñ“¯Šú‚Åˆ—‚µ‚½‚è‚·‚é
-	my_struct* data = static_cast<my_struct*>(req->data);
+//---------------------------
+//
+// javascriptã®è£ã§å®Ÿè¡Œã•ã‚Œã‚‹
+//   - ã“ã®ä¸­ã§ v8ä¸–ç•Œã®ãƒªã‚½ãƒ¼ã‚¹ã¯ã„ã˜ã‚Œãªã„
+//
+void asyncWorker(uv_work_t* req) {
+	std::cout << "asyncWorker\t: " << std::this_thread::get_id() << std::endl;
 	
-//	Isolate* isolate = Isolate::GetCurrent();
-	{
-//		HandleScope scope(isolate);
-//		for (int i = 0; i < 2; i++) {
-			std::this_thread::sleep_for( std::chrono::milliseconds(data->interval) );
-		
-			std::cout << "-- AsyncWork\t: " << std::this_thread::get_id() << std::endl;
-			
-//			const unsigned argc = 1;
-//			Local<Value> argv[argc] = { Number::New(isolate, data->result) };
-//			Local<Function>::New(isolate, data->callback)->Call(isolate->GetCurrentContext()->Global(), argc, argv);
-			
-//		}
-	}
+	// v8ã¨ã¯åˆ¥ä¸–ç•Œã§ sleep.
+	my_struct* data = static_cast<my_struct*>(req->data);
+	std::this_thread::sleep_for( std::chrono::milliseconds(data->interval) );
 }
 
-// ”ñ“¯ŠúƒvƒƒZƒX‚ªÀs‚µ‚½Œã‚ÉŒÄ‚Î‚ê‚é
-void AsyncAfter(uv_work_t* req, int ) {
-	std::cout << "AsyncAfter\t: " << std::this_thread::get_id() << std::endl;
+//---------------------------
+//
+// "asyncWorker"ãŒEixtã—ãŸå¾Œã«å‘¼ã°ã‚Œã‚‹
+//   - javascriptä¸–ç•Œã«é€šçŸ¥ã™ã‚‹ã‚³ãƒ¼ãƒ‰ã‚’è¨˜è¿°ã™ã‚‹
+//   - "uv_queue_work"ãŒã€ã†ã¾ãå‘¼ã‚“ã§ãã‚Œã‚‹ã€‚
+void asyncWorkerAfter(uv_work_t* req, int ) {
+	std::cout << "asyncWorkerAfter\t: " << std::this_thread::get_id() << std::endl;
 
 	my_struct* data = static_cast<my_struct*>(req->data);
 	
@@ -72,37 +71,47 @@ void AsyncAfter(uv_work_t* req, int ) {
 		delete data; data = NULL;
 		delete req; req = NULL;
 	} else {
-		uv_queue_work(uv_default_loop(), req, AsyncWork, AsyncAfter);
+		uv_queue_work(uv_default_loop(), req, asyncWorker, asyncWorkerAfter);
 	}
 	
 }
 
-// JavaScript ‚Ì¢ŠE‚©‚çŒÄ‚Î‚ê‚é
-void Async(const FunctionCallbackInfo<Value>& args)
+//---------------------------
+//
+// javascript(node.js)ä¸Šã®ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆ
+//
+void asyncCommand(const FunctionCallbackInfo<Value>& args)
 {
-	std::cout << "Async\t\t: " << std::this_thread::get_id() << std::endl;
+	std::cout << "asyncCommand\t\t: " << std::this_thread::get_id() << std::endl;
 
-	// •ÊƒXƒŒƒbƒh‚Ö“n‚·ƒf[ƒ^‚ğì‚é
 	my_struct* data = new my_struct;
-	// •ÊƒXƒŒƒbƒh‚Åˆ—‚ğs‚¤
 	uv_work_t *req = new uv_work_t;
 	
 	Isolate* isolate = Isolate::GetCurrent();
 	HandleScope scope(isolate);
-
 	
 	data->count = args[0]->Int32Value();
 	data->interval = args[1]->Int32Value();
 	data->callback.Reset(isolate, args[2].As<Function>());
-
-	
 	req->data = data;
-	uv_queue_work(uv_default_loop(), req, AsyncWork, AsyncAfter);
 	
+	// éåŒæœŸqueueã¸ã®è¿½åŠ 
+	// â†’ "asyncWorker"ã‚’ã‚­ãƒ¥ãƒ¼ã«ç©ã¿ã€è£ã§å‹•ä½œã•ã›ã‚‹ã€‚
+	//    "asyncWorker"ãŒexitã—ãŸã‚‰ã€javascriptä¸Šã®ã‚¹ãƒ¬ãƒƒãƒ‰ã§
+	//    "asyncWorkerAfter"ã‚’ã‚³ãƒ¼ãƒ«ã™ã‚‹
+	uv_queue_work(
+			uv_default_loop(),
+			req,				// request object
+			asyncWorker,		// worker.
+			asyncWorkerAfter);	// process after exist worker on node.js's thread.
+
 }
 
-// Async ŠÖ”‚ğ JavaScript ‚Ì¢ŠE‚Ö‘—‚èo‚·
+//---------------------------
+//
+// javascript(node.js)ã¸ã®ç™»éŒ²
+//
 void Init(Handle<Object> target) {
-	NODE_SET_METHOD(target, "async", Async);
+	NODE_SET_METHOD(target, "async", asyncCommand);
 }
 NODE_MODULE(addon, Init)
