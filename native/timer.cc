@@ -61,8 +61,12 @@ void asyncWorkerAfter(uv_work_t* req, int ) {
 	{
 		HandleScope scope(isolate);
 		const unsigned argc = 1;
-		Local<Value> argv[argc] = { Number::New(isolate, data->count) };
-		Local<Function>::New(isolate, data->callback)->Call(isolate->GetCurrentContext()->Global(), argc, argv);
+		Handle<Value> argv[argc] = { Number::New(isolate, data->count) };
+		Local<Function> cb = Local<Function>::New(isolate, data->callback);
+		Handle<Value> result = cb->Call(isolate->GetCurrentContext()->Global(), argc, argv);
+  		if (result.IsEmpty()) {
+			std::cout << "asyncWorkerAfter cb error !!" << std::endl;
+		}
 	}
 
 	if ( 0 >= data->count-- ) {
