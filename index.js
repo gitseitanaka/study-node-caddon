@@ -14,10 +14,10 @@ var timercb = require('./build/Release/timercb');
 //	console.log('+++', process.memoryUsage());
 
 var id = timercb.async(100/*interval*/, 5/*count*/,
-	function(result) {
+	function(result) {	// progress
 		console.log('@@@@@@@', result);
 	},
-	function(result) {
+	function(result) {	// finish
 		console.log('*******', result);
 	//	console.log('console++', result);
 	//		console.log('+++', process.memoryUsage());

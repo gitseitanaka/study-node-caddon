@@ -1,5 +1,4 @@
 ﻿#include <nan.h>
-
 #include <map>
 
 using namespace v8;
@@ -15,8 +14,6 @@ static void debug_taskid( const char* aName, const char* aTab) {
 #else
 #define DBPRINT(name, tab)
 #endif
-
-
 
 
 //------------------------------------------
@@ -58,12 +55,12 @@ public:
 	// [           ]
 	virtual void Execute (const NanAsyncProgressWorker::ExecutionProgress& aProgress) {
 		DBPRINT(__FUNCTION__, "--\t\t\t\t");
-		for (int i = 0;
-			 (i < _count) && !_requestedAbort;
-			 ++i) {
+		for (int i = 0; i < _count; ++i) {
+			if (_requestedAbort) { break; }
+			
 			aProgress.Send(reinterpret_cast<const char*>(&i), sizeof(int));
 			DBPRINT(__FUNCTION__, "\t\t\t\t");
-	
+			
 			//-----------------
 			Sleep(_interval);
 			//-----------------
@@ -95,14 +92,14 @@ public:
 		
 		callback->Call(1, argv);
 	}
-	
 
 	//----------------------
 	// id取得
 	int WorkerId() const { return _workerid; }
 	
 	//----------------------
-	// 
+	// 中断指示
+	//   静的メンバ関数
 	// [v8 conntext]
 	static void Abort(int aWorkerId) {
 		DBPRINT(__FUNCTION__, "\t\t\t\t");
@@ -114,6 +111,9 @@ public:
 	}
 
 protected:
+	//----------------------
+	// 中断要求
+	// [v8 conntext]
 	void AbortRequest() {
 		_requestedAbort = true;
 	}
@@ -123,11 +123,12 @@ private:
 	int _interval;				// interval
 	int _count;					// count
 	
-	int _workerid;				// 
-	bool _requestedAbort;		//
+	int _workerid;				// worker id
+	bool _requestedAbort;		// "abort" is requested.
 	
+								// global workerpool
 	static std::map<int, AsyncWorker*> workerpool;
-	static int shareworkerid;
+	static int shareworkerid;	// global workerid
 };
 int AsyncWorker::shareworkerid = 0;
 std::map<int, AsyncWorker*> AsyncWorker::workerpool;
@@ -151,7 +152,6 @@ NAN_METHOD(asyncCommand) {
 			args[0]->Uint32Value());	// interval
 	NanAsyncQueueWorker(worker);
 	
-	//NanReturnUndefined();
 	NanReturnValue(NanNew<Integer>(worker->WorkerId()));
 }
 
