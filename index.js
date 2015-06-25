@@ -13,11 +13,17 @@ var timercb = require('./build/Release/timercb');
 //});
 //	console.log('+++', process.memoryUsage());
 
-timercb.async(100/*interval*/, 5/*count*/, function(result) {
-//	console.log('console++', result);
-//		console.log('+++', process.memoryUsage());
+timercb.async(100/*interval*/, 5/*count*/,
+	function(result) {
+		console.log('@@@@@@@', result);
+	},
+	function(result) {
+		console.log('*******', result);
+	//	console.log('console++', result);
+	//		console.log('+++', process.memoryUsage());
 
-});
+	}
+);
 
 //var timer = setInterval(function () {
 //	console.log('----');
