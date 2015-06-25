@@ -13,7 +13,7 @@ var timercb = require('./build/Release/timercb');
 //});
 //	console.log('+++', process.memoryUsage());
 
-timercb.async(100/*interval*/, 5/*count*/,
+var id = timercb.async(100/*interval*/, 5/*count*/,
 	function(result) {
 		console.log('@@@@@@@', result);
 	},
@@ -24,6 +24,11 @@ timercb.async(100/*interval*/, 5/*count*/,
 
 	}
 );
+
+	setTimeout(function () {
+		timercb.abort(id);
+	}, 200);
+
 
 //var timer = setInterval(function () {
 //	console.log('----');
@@ -38,6 +43,7 @@ timercb.async(100/*interval*/, 5/*count*/,
 		setTimeout(function () {
 //clearInterval(timer);
 			console.log('-------------------------------');
+			timercb.abort(id);
 			if(global.gc) {
 				 global.gc();
 				console.log('+++', process.memoryUsage());
