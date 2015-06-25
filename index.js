@@ -1,9 +1,9 @@
 // hello.js
-require('v8-profiler');
+//require('v8-profiler');
 
-//var addon = require('./build/Release/addon');
+var addon = require('./build/Release/addon');
 
-//console.log(addon.hello()); // 'world'
+console.log('Hello', addon.hello()); // 'world'
 
 
 var timercb = require('./build/Release/timercb');
@@ -11,9 +11,9 @@ var timercb = require('./build/Release/timercb');
 //timercb.async(100, 100, function(result) {
 //	console.log('console++', result);
 //});
-		console.log('+++', process.memoryUsage());
+//	console.log('+++', process.memoryUsage());
 
-timercb.async(100, 110, function(result) {
+timercb.async(100/*interval*/, 5/*count*/, function(result) {
 //	console.log('console++', result);
 //		console.log('+++', process.memoryUsage());
 
@@ -36,4 +36,4 @@ timercb.async(100, 110, function(result) {
 				 global.gc();
 				console.log('+++', process.memoryUsage());
 			}
-		}, 20000);
+		}, 2000);

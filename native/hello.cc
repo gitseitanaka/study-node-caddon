@@ -1,15 +1,18 @@
 #include <node.h>
+#include <nan.h>
 
 using namespace v8;
 
-void Method(const FunctionCallbackInfo<Value>& args) {
-  Isolate* isolate = Isolate::GetCurrent();
-  HandleScope scope(isolate);
-  args.GetReturnValue().Set(String::NewFromUtf8(isolate, "world"));
+NAN_METHOD(Method) {
+	NanScope();
+
+	NanReturnValue(NanNew<String>("world"));
 }
 
 void init(Handle<Object> exports) {
-  NODE_SET_METHOD(exports, "hello", Method);
+
+  exports->Set(NanNew("hello"), NanNew<FunctionTemplate>(Method)->GetFunction());
+
 }
 
 NODE_MODULE(addon, init)
