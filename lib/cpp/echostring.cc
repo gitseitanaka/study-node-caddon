@@ -1,12 +1,12 @@
 ﻿#include <nan.h>
 #include <map>
+#include <thread>
 
 using namespace v8;
 
 #define _DEBUG_PRINT
 #ifdef _DEBUG_PRINT
 #include <iostream>
-#include <thread>
 static void debug_taskid( const char* aName, const char* aTab) {
 	std::cout << aName << aTab << std::this_thread::get_id() << std::endl;
 }
@@ -37,7 +37,7 @@ public:
 	  _requestedAbort(false)
 	{
 		NanScope();
-		
+
 		workerpool.insert( std::make_pair( _workerid, this ) );
 	}
 	//----------------------
@@ -46,7 +46,7 @@ public:
 	virtual ~AsyncWorker() {
 		DBPRINT(__FUNCTION__, "\t\t\t");
 		NanScope();
-		
+
 		workerpool.erase(_workerid);
 	}
 
@@ -57,17 +57,17 @@ public:
 		DBPRINT(__FUNCTION__, "--\t\t\t\t");
 		for (int i = 0; i < _count; ++i) {
 			if (_requestedAbort) { break; }
-			
+
 			aProgress.Send(reinterpret_cast<const char*>(&i), sizeof(int));
 			DBPRINT(__FUNCTION__, "\t\t\t\t");
-			
+
 			//-----------------
 			Sleep(_interval);
 			//-----------------
 		}
 		DBPRINT(__FUNCTION__, "--\t\t\t\t");
 	}
-	
+
 	//----------------------
 	// 経過通知
 	//   "Execute"内の"aProgress.Send()"によりメッセージング
@@ -81,7 +81,7 @@ public:
 		};
 		progress->Call(1, argv);
 	}
-	
+
 	//----------------------
 	// 完了通知
 	// [v8 conntext]
@@ -89,14 +89,14 @@ public:
 		DBPRINT(__FUNCTION__, "\t\t\t");
 		NanScope();
 		Local<Value> argv[] = { NanNew<Integer>(_count) };
-		
+
 		callback->Call(1, argv);
 	}
 
 	//----------------------
 	// id取得
 	int WorkerId() const { return _workerid; }
-	
+
 	//----------------------
 	// 中断指示
 	//   静的メンバ関数
@@ -122,10 +122,10 @@ private:
 	NanCallback* progress;		// progress callback
 	int _interval;				// interval
 	int _count;					// count
-	
+
 	int _workerid;				// worker id
 	bool _requestedAbort;		// "abort" is requested.
-	
+
 								// global workerpool
 	static std::map<int, AsyncWorker*> workerpool;
 	static int shareworkerid;	// global workerid
@@ -151,7 +151,7 @@ NAN_METHOD(asyncCommand) {
 			args[1]->Uint32Value(),		// count
 			args[0]->Uint32Value());	// interval
 	NanAsyncQueueWorker(worker);
-	
+
 	NanReturnValue(NanNew<Integer>(worker->WorkerId()));
 }
 
@@ -163,9 +163,9 @@ NAN_METHOD(asyncAbortCommand) {
 	DBPRINT(__FUNCTION__, "\t\t\t\t");
 
 	NanScope();
-	
+
 	AsyncWorker::Abort(args[0]->Uint32Value());
-	
+
 	NanReturnUndefined();
 }
 
