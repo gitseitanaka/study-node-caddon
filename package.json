@@ -1,5 +1,5 @@
 {
-  "name": "study-c-addon",
+  "name": "echo-string",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -8,7 +8,16 @@
   },
   "author": "",
   "license": "MIT",
+  "directories": {
+    "test": "test/"
+  },
   "dependencies": {
     "nan": "^1.8.4"
+  },
+  "devDependencies": {
+    "espower-loader": "^0.11.0",
+    "intelli-espower-loader": "^0.7.0",
+    "mocha": "^2.2.5",
+    "power-assert": "^0.11.0"
   }
 }
