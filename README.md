@@ -13,7 +13,7 @@ APIs
 
 		String 1
 		String 2
-		   ÅF
+		   :
 		String n
 
 +   `aInterval` :
@@ -28,5 +28,3 @@ APIs
 ###echoStringCyclicAbort(aHandleId)###
 
 +   `aHandleId` : a handle id.
-
-
