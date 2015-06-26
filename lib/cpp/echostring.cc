@@ -176,4 +176,4 @@ void Init(Handle<Object> exports) {
 	exports->Set(NanNew("async"), NanNew<FunctionTemplate>(asyncCommand)->GetFunction());
 	exports->Set(NanNew("abort"), NanNew<FunctionTemplate>(asyncAbortCommand)->GetFunction());
 }
-NODE_MODULE(timercb, Init)
+NODE_MODULE(echostring, Init)

@@ -1,8 +1,8 @@
 {
   "targets": [
     {
-      "target_name": "timercb",
-      "sources": [ "lib/timer.cc" ],
+      "target_name": "echostring",
+      "sources": [ "lib/cpp/echostring.cc" ],
 	  "include_dirs" : [
 	    "<!(node -e \"require('nan')\")"
 	  ]
