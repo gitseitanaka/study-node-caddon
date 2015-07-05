@@ -1,4 +1,5 @@
 ﻿#include <nan.h>
+#include <uv.h>
 #include <map>
 #include <thread>
 
@@ -28,6 +29,7 @@ public:
 	AsyncWorker(
 		NanCallback* aProgressCallback,		// progress callback
 		NanCallback* aCallback,				// finish callback
+//		v8::Local<v8::Object>& aPathHandle, // string
 		int aCount,							// count
 		int aInterval )						// interval
     : NanAsyncProgressWorker(aCallback), progress(aProgressCallback),
@@ -36,7 +38,11 @@ public:
 	  _workerid(AsyncWorker::shareworkerid++),
 	  _requestedAbort(false)
 	{
+		memset(&_wait_obj, 0, sizeof(_wait_obj));
+		uv_sem_init(&_wait_obj, 1);
+
 		NanScope();
+//		SaveToPersistent("path", aPathHandle);
 
 		workerpool.insert( std::make_pair( _workerid, this ) );
 	}
@@ -44,6 +50,8 @@ public:
 	// デストラクタ
 	// [v8 conntext]
 	virtual ~AsyncWorker() {
+		uv_sem_destroy(&_wait_obj);
+
 		DBPRINT(__FUNCTION__, "\t\t\t");
 		NanScope();
 
@@ -65,6 +73,7 @@ public:
 			Sleep(_interval);
 			//-----------------
 		}
+		uv_sem_wait(&_wait_obj);
 		DBPRINT(__FUNCTION__, "--\t\t\t\t");
 	}
 
@@ -110,12 +119,14 @@ public:
 		}
 	}
 
+
 protected:
 	//----------------------
 	// 中断要求
 	// [v8 conntext]
 	void AbortRequest() {
 		_requestedAbort = true;
+		//		uv_sem_post(&_wait_obj);
 	}
 
 private:
@@ -125,6 +136,9 @@ private:
 
 	int _workerid;				// worker id
 	bool _requestedAbort;		// "abort" is requested.
+
+	uv_sem_t _wait_obj;			// wait object for worker
+	uv_timer_t _tick_timer;		// tick timer
 
 								// global workerpool
 	static std::map<int, AsyncWorker*> workerpool;
