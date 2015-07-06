@@ -44,10 +44,9 @@ public:
 		NanCallback* aCallback,				// finish callback
 		std::string& aSettingPath,			// setting file path
 		int aInterval )						// interval
-    : NanAsyncProgressWorker(aCallback), progress(aProgressCallback),
+    : NanAsyncProgressWorker(aCallback), _progress(aProgressCallback),
 	  _setting_filepath(aSettingPath),
 	  _interval(aInterval),
-	  _count(0),
 	  _workerid(AsyncWorker::shareworkerid++),
 	  _requestedAbort(false)
 	{
@@ -118,7 +117,7 @@ public:
 			NanNew<Integer>(WorkerId()),
 			NanNew<String>(const_cast<char*>(str.c_str()))
 		};
-		progress->Call(2, argv);
+		_progress->Call(2, argv);
 		DBPRINT("[Exit ]" __FUNCTION__, "\t");
 	}
 
@@ -137,6 +136,36 @@ public:
 	// id取得
 	int WorkerId() const { return _workerid; }
 
+protected:
+		//----------------------
+		// 中断要求
+		// [v8 conntext]
+		void AbortRequest() {
+			DBPRINT("[Enter]" __FUNCTION__, "\t\t");
+			_requestedAbort = true;
+			uv_timer_stop(&_tick_timer);
+			uv_unref((uv_handle_t*)&_tick_timer);
+			uv_sem_post(&_wait_obj);
+			DBPRINT("[Exit ]" __FUNCTION__, "\t\t");
+		}
+
+private:
+		//----------------------
+		// Tick処理
+		// [v8 conntext]
+		void Tick() {
+			DBPRINT("[Enter]" __FUNCTION__, "\t\t\t");
+			if (!_requestedAbort) {
+				DBPRINT("[Trace]" __FUNCTION__, "\t\t\t");
+				uv_timer_again(&_tick_timer);
+			}
+			uv_sem_post(&_wait_obj);
+			DBPRINT("[Exit ]" __FUNCTION__, "\t\t\t");
+		}
+
+//======================
+//Static menbers.
+public:
 	//----------------------
 	// 中断指示
 	//   静的メンバ関数
@@ -152,19 +181,19 @@ public:
 	}
 
 
-protected:
+private:
 	//----------------------
-	// 中断要求
+	// Tick処理
 	// [v8 conntext]
-	void AbortRequest() {
+	static void Tick_timer_cb(uv_timer_t* aHandle) {
 		DBPRINT("[Enter]" __FUNCTION__, "\t\t");
-		_requestedAbort = true;
-		uv_timer_stop(&_tick_timer);
-		uv_unref((uv_handle_t*)&_tick_timer);
-		uv_sem_post(&_wait_obj);
+		if (0 != uv_is_active((uv_handle_t*) aHandle)) { // non-zero is active
+			AsyncWorker* instance = reinterpret_cast<AsyncWorker*>(aHandle->data);
+			instance->Tick();
+		}
 		DBPRINT("[Exit ]" __FUNCTION__, "\t\t");
 	}
-private:
+
 	//----------------------
 	// lines(file)->vector
 	static void readFile(
@@ -205,34 +234,10 @@ private:
 		return result;
 	}
 
-	//----------------------
-	// Tick処理
-	// [v8 conntext]
-	void Tick() {
-		DBPRINT("[Enter]" __FUNCTION__, "\t\t\t");
-		if (!_requestedAbort) {
-			DBPRINT("[Trace]" __FUNCTION__, "\t\t\t");
-			uv_timer_again(&_tick_timer);
-		}
-		uv_sem_post(&_wait_obj);
-		DBPRINT("[Exit ]" __FUNCTION__, "\t\t\t");
-	}
-	//----------------------
-	// Tick処理
-	// [v8 conntext]
-	static void Tick_timer_cb(uv_timer_t* aHandle) {
-		DBPRINT("[Enter]" __FUNCTION__, "\t\t");
-		if (0 != uv_is_active((uv_handle_t*) aHandle)) { // non-zero is active
-			AsyncWorker* instance = reinterpret_cast<AsyncWorker*>(aHandle->data);
-			instance->Tick();
-		}
-		DBPRINT("[Exit ]" __FUNCTION__, "\t\t");
-	}
 
 private:
-	NanCallback* progress;		// progress callback
+	NanCallback* _progress;		// progress callback
 	int _interval;				// interval
-	int _count;					// count
 
 								// file path
 	std::string _setting_filepath;
@@ -297,7 +302,9 @@ NAN_METHOD(asyncAbortCommand) {
 //---------------------------
 // v8へのbind
 void Init(Handle<Object> exports) {
-	exports->Set(NanNew("async"), NanNew<FunctionTemplate>(asyncCommand)->GetFunction());
-	exports->Set(NanNew("abort"), NanNew<FunctionTemplate>(asyncAbortCommand)->GetFunction());
+	exports->Set(NanNew("async"),
+				NanNew<FunctionTemplate>(asyncCommand)->GetFunction());
+	exports->Set(NanNew("abort"),
+				NanNew<FunctionTemplate>(asyncAbortCommand)->GetFunction());
 }
 NODE_MODULE(echostring, Init)
