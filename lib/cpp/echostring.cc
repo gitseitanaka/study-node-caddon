@@ -1,6 +1,8 @@
 ﻿#include <nan.h>
 #include <uv.h>
 #include <map>
+#include <vector>
+#include <string>
 #include <thread>
 
 using namespace v8;
@@ -23,24 +25,33 @@ static void debug_taskid( const char* aName, const char* aTab) {
 //
 class AsyncWorker : public NanAsyncProgressWorker {
 public:
+	enum ArgIndex{
+		ArgSettingFilePath = 0,
+		ArgInterval,
+		ArgCbProgress,
+		ArgCbFinish,
+	};
 	//----------------------
 	// コンストラクタ
 	// [v8 conntext]
 	AsyncWorker(
 		NanCallback* aProgressCallback,		// progress callback
 		NanCallback* aCallback,				// finish callback
-//		v8::Local<v8::Object>& aPathHandle, // string
-		int aCount,							// count
+		std::string& aSettingPath,			// setting file path
 		int aInterval )						// interval
     : NanAsyncProgressWorker(aCallback), progress(aProgressCallback),
+	  _setting_filepath(aSettingPath),
 	  _interval(aInterval),
-	  _count(aCount),
+	  _count(0),
 	  _workerid(AsyncWorker::shareworkerid++),
 	  _requestedAbort(false)
 	{
 		DBPRINT("[Enter]" __FUNCTION__, "\t\t\t");
 		memset(&_wait_obj, 0, sizeof(_wait_obj));
 		memset(&_tick_timer, 0, sizeof(_tick_timer));
+
+
+		std::cout << _setting_filepath << std::endl;
 
 		uv_sem_init(&_wait_obj, 0);
 		uv_timer_init(uv_default_loop(), &_tick_timer);
@@ -68,6 +79,7 @@ public:
 	// [           ]
 	virtual void Execute (const NanAsyncProgressWorker::ExecutionProgress& aProgress) {
 		DBPRINT("[Enter]" __FUNCTION__, "--\t\t\t");
+
 
 		_tick_timer.data = (void*)this;
 		uv_timer_start(&_tick_timer, Tick_timer_cb, 0, _interval);
@@ -165,6 +177,11 @@ private:
 	int _interval;				// interval
 	int _count;					// count
 
+								// file path
+	std::string _setting_filepath;
+								// name array
+	std::vector<std::string> _namearray;
+
 	int _workerid;				// worker id
 	bool _requestedAbort;		// "abort" is requested.
 
@@ -183,18 +200,23 @@ std::map<int, AsyncWorker*> AsyncWorker::workerpool;
 // [v8 conntext]
 NAN_METHOD(asyncCommand) {
 	DBPRINT("[V8   ]" __FUNCTION__, "\t\t\t\t");
-
 	NanScope();
 
-	NanCallback* progress = new NanCallback(args[2].As<v8::Function>());
-	NanCallback* callback = new NanCallback(args[3].As<v8::Function>());
+	NanCallback* progress = new NanCallback(
+				args[AsyncWorker::ArgCbProgress].As<v8::Function>());
+	NanCallback* callback = new NanCallback(
+				args[AsyncWorker::ArgCbFinish].As<v8::Function>());
+	NanUtf8String* filename = new NanUtf8String(
+				args[AsyncWorker::ArgSettingFilePath]);
 
 	// "worker" will be destroyed by v8.
 	AsyncWorker* worker = new AsyncWorker(
 			progress,					// progress callback
 			callback,					// finish callback
-			args[1]->Uint32Value(),		// count
-			args[0]->Uint32Value());	// interval
+										// filename
+			std::string(filename->operator*()),
+										// interval
+			args[AsyncWorker::ArgInterval]->Uint32Value());
 	NanAsyncQueueWorker(worker);
 
 	NanReturnValue(NanNew<Integer>(worker->WorkerId()));

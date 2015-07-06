@@ -8,7 +8,7 @@ var timercb = require('./index.js');
 //});
 //	console.log('+++', process.memoryUsage());
 
-var id = timercb.async(500/*interval*/, 5/*count*/,
+var id = timercb.async("PathX", 500/*interval*/,
 	function(result) {	// progress
 		console.log('@@@@@@@', result);
 	},
