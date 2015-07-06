@@ -38,43 +38,45 @@ public:
 	  _workerid(AsyncWorker::shareworkerid++),
 	  _requestedAbort(false)
 	{
+		DBPRINT("[Enter]" __FUNCTION__, "\t\t\t");
 		memset(&_wait_obj, 0, sizeof(_wait_obj));
-		uv_sem_init(&_wait_obj, 1);
+		memset(&_tick_timer, 0, sizeof(_tick_timer));
+
+		uv_sem_init(&_wait_obj, 0);
+		uv_timer_init(uv_default_loop(), &_tick_timer);
 
 		NanScope();
 //		SaveToPersistent("path", aPathHandle);
 
 		workerpool.insert( std::make_pair( _workerid, this ) );
+		DBPRINT("[Exit ]" __FUNCTION__, "\t\t\t");
 	}
 	//----------------------
 	// デストラクタ
 	// [v8 conntext]
 	virtual ~AsyncWorker() {
+		DBPRINT("[Enter]" __FUNCTION__, "\t\t");
 		uv_sem_destroy(&_wait_obj);
-
-		DBPRINT(__FUNCTION__, "\t\t\t");
 		NanScope();
 
 		workerpool.erase(_workerid);
+		DBPRINT("[Exit ]" __FUNCTION__, "\t\t");
 	}
 
 	//----------------------
 	// 非同期処理ループ
 	// [           ]
 	virtual void Execute (const NanAsyncProgressWorker::ExecutionProgress& aProgress) {
-		DBPRINT(__FUNCTION__, "--\t\t\t\t");
-		for (int i = 0; i < _count; ++i) {
-			if (_requestedAbort) { break; }
+		DBPRINT("[Enter]" __FUNCTION__, "--\t\t\t");
 
-			aProgress.Send(reinterpret_cast<const char*>(&i), sizeof(int));
-			DBPRINT(__FUNCTION__, "\t\t\t\t");
+		_tick_timer.data = (void*)this;
+		uv_timer_start(&_tick_timer, Tick_timer_cb, 0, _interval);
 
-			//-----------------
-			Sleep(_interval);
-			//-----------------
+		while(!_requestedAbort) {
+			//			aProgress.Send(reinterpret_cast<const char*>(&i), sizeof(int));
+			uv_sem_wait(&_wait_obj);
 		}
-		uv_sem_wait(&_wait_obj);
-		DBPRINT(__FUNCTION__, "--\t\t\t\t");
+		DBPRINT("[Exit ]" __FUNCTION__, "--\t\t\t");
 	}
 
 	//----------------------
@@ -82,13 +84,14 @@ public:
 	//   "Execute"内の"aProgress.Send()"によりメッセージング
 	// [v8 conntext]
 	virtual void HandleProgressCallback(const char *data, size_t size) {
-		DBPRINT(__FUNCTION__, "\t\t");
+		DBPRINT("[Enter]" __FUNCTION__, "\t\t");
 
 		NanScope();
 		Local<Value> argv[] = {
 		    NanNew<Integer>(*reinterpret_cast<int*>(const_cast<char*>(data)))
 		};
 		progress->Call(1, argv);
+		DBPRINT("[Exit ]" __FUNCTION__, "\t\t");
 	}
 
 	//----------------------
@@ -111,12 +114,13 @@ public:
 	//   静的メンバ関数
 	// [v8 conntext]
 	static void Abort(int aWorkerId) {
-		DBPRINT(__FUNCTION__, "\t\t\t\t");
+		DBPRINT("[Enter]" __FUNCTION__, "\t\t\t");
 		std::map<int, AsyncWorker*>::iterator ite = workerpool.find(aWorkerId);
 		if (workerpool.end() != ite) {
 			(*ite).second->AbortRequest();
 			DBPRINT(__FUNCTION__, "--\t\t\t\t");
 		}
+		DBPRINT("[Exit ]" __FUNCTION__, "\t\t\t");
 	}
 
 
@@ -125,8 +129,35 @@ protected:
 	// 中断要求
 	// [v8 conntext]
 	void AbortRequest() {
+		DBPRINT("[Enter]" __FUNCTION__, "\t\t");
 		_requestedAbort = true;
-		//		uv_sem_post(&_wait_obj);
+		uv_timer_stop(&_tick_timer);
+		uv_unref((uv_handle_t*)&_tick_timer);
+		uv_sem_post(&_wait_obj);
+		DBPRINT("[Exit ]" __FUNCTION__, "\t\t");
+	}
+private:
+	//----------------------
+	// Tick処理
+	// [v8 conntext]
+	void Tick() {
+		DBPRINT("[Enter]" __FUNCTION__, "\t\t\t");
+		if (!_requestedAbort) {
+			DBPRINT("[Trace]" __FUNCTION__, "\t\t\t");
+			uv_timer_again(&_tick_timer);
+		}
+		DBPRINT("[Exit ]" __FUNCTION__, "\t\t\t");
+	}
+	//----------------------
+	// Tick処理
+	// [v8 conntext]
+	static void Tick_timer_cb(uv_timer_t* aHandle) {
+		DBPRINT("[Enter]" __FUNCTION__, "\t\t");
+		if (0 != uv_is_active((uv_handle_t*) aHandle)) { // non-zero is active
+			AsyncWorker* instance = reinterpret_cast<AsyncWorker*>(aHandle->data);
+			instance->Tick();
+		}
+		DBPRINT("[Exit ]" __FUNCTION__, "\t\t");
 	}
 
 private:
@@ -151,7 +182,7 @@ std::map<int, AsyncWorker*> AsyncWorker::workerpool;
 // java scriptからの関数コール
 // [v8 conntext]
 NAN_METHOD(asyncCommand) {
-	DBPRINT(__FUNCTION__, "\t\t\t\t\t");
+	DBPRINT("[V8   ]" __FUNCTION__, "\t\t\t\t");
 
 	NanScope();
 
@@ -174,7 +205,7 @@ NAN_METHOD(asyncCommand) {
 // java scriptからの関数コール
 // [v8 conntext]
 NAN_METHOD(asyncAbortCommand) {
-	DBPRINT(__FUNCTION__, "\t\t\t\t");
+	DBPRINT("[V8   ]" __FUNCTION__, "\t\t\t");
 
 	NanScope();
 
