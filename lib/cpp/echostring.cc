@@ -1,9 +1,12 @@
 ﻿#include <nan.h>
 #include <uv.h>
+
+#include <thread>
 #include <map>
 #include <vector>
 #include <string>
-#include <thread>
+#include <fstream>
+#include <algorithm>
 
 using namespace v8;
 
@@ -25,6 +28,8 @@ static void debug_taskid( const char* aName, const char* aTab) {
 //
 class AsyncWorker : public NanAsyncProgressWorker {
 public:
+	//----------------------
+	// argments index.
 	enum ArgIndex{
 		ArgSettingFilePath = 0,
 		ArgInterval,
@@ -50,14 +55,10 @@ public:
 		memset(&_wait_obj, 0, sizeof(_wait_obj));
 		memset(&_tick_timer, 0, sizeof(_tick_timer));
 
-
-		std::cout << _setting_filepath << std::endl;
-
 		uv_sem_init(&_wait_obj, 0);
 		uv_timer_init(uv_default_loop(), &_tick_timer);
 
 		NanScope();
-//		SaveToPersistent("path", aPathHandle);
 
 		workerpool.insert( std::make_pair( _workerid, this ) );
 		DBPRINT("[Exit ]" __FUNCTION__, "\t\t\t");
@@ -68,6 +69,15 @@ public:
 	virtual ~AsyncWorker() {
 		DBPRINT("[Enter]" __FUNCTION__, "\t\t");
 		uv_sem_destroy(&_wait_obj);
+#if 0
+		auto dump = [](std::vector<std::string>& v) {
+				for(auto i:v) {
+					std::cout << i << " ";
+			}
+                std::cout << std::endl;
+        };
+        dump(_stringArray);
+#endif
 		NanScope();
 
 		workerpool.erase(_workerid);
@@ -76,17 +86,21 @@ public:
 
 	//----------------------
 	// 非同期処理ループ
-	// [           ]
+	// [non-v8     ]
 	virtual void Execute (const NanAsyncProgressWorker::ExecutionProgress& aProgress) {
 		DBPRINT("[Enter]" __FUNCTION__, "--\t\t\t");
 
+		readFile(_setting_filepath, _stringArray);
 
 		_tick_timer.data = (void*)this;
 		uv_timer_start(&_tick_timer, Tick_timer_cb, 0, _interval);
 
 		while(!_requestedAbort) {
-			//			aProgress.Send(reinterpret_cast<const char*>(&i), sizeof(int));
 			uv_sem_wait(&_wait_obj);
+			aProgress.Send(reinterpret_cast<const char*>(_stringArray[0].c_str()),
+			 			   _stringArray[0].length());
+
+			rotate(_stringArray.begin(), _stringArray.begin()+1, _stringArray.end());
 		}
 		DBPRINT("[Exit ]" __FUNCTION__, "--\t\t\t");
 	}
@@ -95,15 +109,17 @@ public:
 	// 経過通知
 	//   "Execute"内の"aProgress.Send()"によりメッセージング
 	// [v8 conntext]
-	virtual void HandleProgressCallback(const char *data, size_t size) {
-		DBPRINT("[Enter]" __FUNCTION__, "\t\t");
+	virtual void HandleProgressCallback(const char* data, size_t size) {
+		DBPRINT("[Enter]" __FUNCTION__, "\t");
 
 		NanScope();
+		std::string str(data, size);
 		Local<Value> argv[] = {
-		    NanNew<Integer>(*reinterpret_cast<int*>(const_cast<char*>(data)))
+			NanNew<Integer>(WorkerId()),
+			NanNew<String>(const_cast<char*>(str.c_str()))
 		};
-		progress->Call(1, argv);
-		DBPRINT("[Exit ]" __FUNCTION__, "\t\t");
+		progress->Call(2, argv);
+		DBPRINT("[Exit ]" __FUNCTION__, "\t");
 	}
 
 	//----------------------
@@ -112,7 +128,7 @@ public:
 	virtual void HandleOKCallback () {
 		DBPRINT(__FUNCTION__, "\t\t\t");
 		NanScope();
-		Local<Value> argv[] = { NanNew<Integer>(_count) };
+		Local<Value> argv[] = { NanNew<Integer>(WorkerId()) };
 
 		callback->Call(1, argv);
 	}
@@ -150,6 +166,46 @@ protected:
 	}
 private:
 	//----------------------
+	// lines(file)->vector
+	static void readFile(
+				const std::string& aFilePath,
+				std::vector<std::string>& oList)
+	{
+		std::ifstream instream( aFilePath.c_str(), std::ios::in );
+		if ( instream ) {
+			for (;;) {
+				std::string readstring;
+				getline( instream, readstring );
+				if ( instream.eof() )
+				{
+					break;
+				}
+				else
+				{
+					std::string str = Trim(std::string(readstring));
+					oList.push_back(str);
+				}
+			}
+			instream.close();
+		}
+	}
+
+	//----------------------
+	// Trim
+	static std::string Trim(const std::string& aString,
+					const char* aTrimCharacterList = " \t\v\r\n")
+	{
+		std::string result;
+		std::string::size_type left = aString.find_first_not_of(aTrimCharacterList);
+		if (left != std::string::npos)
+		{
+			std::string::size_type right = aString.find_last_not_of(aTrimCharacterList);
+			result = aString.substr(left, right - left + 1);
+		}
+		return result;
+	}
+
+	//----------------------
 	// Tick処理
 	// [v8 conntext]
 	void Tick() {
@@ -158,6 +214,7 @@ private:
 			DBPRINT("[Trace]" __FUNCTION__, "\t\t\t");
 			uv_timer_again(&_tick_timer);
 		}
+		uv_sem_post(&_wait_obj);
 		DBPRINT("[Exit ]" __FUNCTION__, "\t\t\t");
 	}
 	//----------------------
@@ -179,8 +236,8 @@ private:
 
 								// file path
 	std::string _setting_filepath;
-								// name array
-	std::vector<std::string> _namearray;
+								// string array
+	std::vector<std::string> _stringArray;
 
 	int _workerid;				// worker id
 	bool _requestedAbort;		// "abort" is requested.
@@ -200,6 +257,7 @@ std::map<int, AsyncWorker*> AsyncWorker::workerpool;
 // [v8 conntext]
 NAN_METHOD(asyncCommand) {
 	DBPRINT("[V8   ]" __FUNCTION__, "\t\t\t\t");
+
 	NanScope();
 
 	NanCallback* progress = new NanCallback(
@@ -221,7 +279,6 @@ NAN_METHOD(asyncCommand) {
 
 	NanReturnValue(NanNew<Integer>(worker->WorkerId()));
 }
-
 
 //----------------------
 // java scriptからの関数コール

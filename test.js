@@ -1,27 +1,43 @@
 // hello.js
 //require('v8-profiler');
 
-var timercb = require('./index.js');
+var echostring = require('./index.js');
 
-//timercb.async(100, 100, function(result) {
+//echostring.async(100, 100, function(result) {
 //	console.log('console++', result);
 //});
 //	console.log('+++', process.memoryUsage());
 
-var id = timercb.async("PathX", 500/*interval*/,
-	function(result) {	// progress
-		console.log('@@@@@@@', result);
+//
+
+//var id = echostring.async("PathX", 500/*interval*/,
+var id = echostring.async("C:\\Users\\tanakahi\\nodeschool\\caddon\\test.txt", 500/*interval*/,
+	function(id, hoge) {	// progress
+		console.log('@@@@@@@', id, hoge);
 	},
-	function(result) {	// finish
-		console.log('*******', result);
+	function(id) {	// finish
+		console.log('*******', id);
 	//	console.log('console++', result);
 	//		console.log('+++', process.memoryUsage());
 
 	}
 );
+var id2 = echostring.async("C:\\Users\\tanakahi\\nodeschool\\caddon\\test.txt", 200/*interval*/,
+	function(id, hoge) {	// progress
+		console.log('@@@@@@@', id, hoge);
+	},
+	function(id) {	// finish
+		console.log('*******', id);
+
+	}
+);
 
 	setTimeout(function () {
-		timercb.abort(id);
+		echostring.abort(id);
+	}, 3000);
+
+	setTimeout(function () {
+		echostring.abort(id2);
 	}, 3000);
 
 
@@ -38,7 +54,7 @@ var id = timercb.async("PathX", 500/*interval*/,
 		setTimeout(function () {
 //clearInterval(timer);
 			console.log('-------------------------------');
-			timercb.abort(id);
+			echostring.abort(id);
 			if(global.gc) {
 				 global.gc();
 				console.log('+++', process.memoryUsage());
