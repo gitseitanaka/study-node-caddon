@@ -1,50 +1,58 @@
 var assert = require("power-assert");
-
-var timercb = require('../index.js');
+var stringecho = require('../index.js');
 
 
 describe('string-echo', function () {
-//timercb.async(100, 100, function(result) {
-//	console.log('console++', result);
-//});
-//	console.log('+++', process.memoryUsage());
-
-var id = timercb.async(100/*interval*/, 5/*count*/,
-	function(result) {	// progress
-		console.log('@@@@@@@', result);
-	},
-	function(result) {	// finish
-		console.log('*******', result);
-	//	console.log('console++', result);
-	//		console.log('+++', process.memoryUsage());
-
-	}
-);
-
-	setTimeout(function () {
-		timercb.abort(id);
-	}, 200);
-
-
-//var timer = setInterval(function () {
-//	console.log('----');
-//
-//if(global.gc) {
-//	console.log('+++', process.memoryUsage());
-// global.gc();
-//}
-//
-//}, 100);
-
-		setTimeout(function () {
-//clearInterval(timer);
-			console.log('-------------------------------');
-			timercb.abort(id);
-			if(global.gc) {
-				 global.gc();
-				console.log('+++', process.memoryUsage());
+	var testfilename = 'test/teststrings.txt';
+	var fs = require('fs'),
+	    readline = require('readline'),
+	    rs = fs.ReadStream(testfilename),
+	    rl = readline.createInterface({'input': rs, 'output': {}});
+	var namearray = [];
+	rl.on('line', function (line) {
+			var name = line.trim();
+			if (name.length !== 0) {
+		    namearray.push(name);
 			}
-		}, 2000);
+	});
+	rl.resume();
+
+	describe('start-stop', function () {
+		
+		it ('start->stop(none call cb)', function () {
+			var called = 0;
+			var gid = stringecho.async(testfilename, 100,
+								function(id, name) {	// process
+									assert.equal(namearray[called], name);
+									called++;
+								},
+								function(id) {				// finish
+									assert(called === 0);
+								}
+							);
+			stringecho.abort(gid);
+		});
+
+		it ('start->stop(called cb 1 time)', function (done) {
+			var called = 0;
+			var gid = stringecho.async(testfilename, 100,
+								function(id, name) {	// process
+									assert.equal(namearray[called], name);
+									called++;
+								},
+								function(id) {				// finish
+									assert(called === 1);
+									done();
+								}
+							);
+			setTimeout(function () {
+				stringecho.abort(gid);
+			}, 150);
+		});
+
+
+	});
+
 
 });
 
