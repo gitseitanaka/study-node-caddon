@@ -1,11 +1,14 @@
 {
-  "targets": [
-    {
-      "target_name": "echostring",
-      "sources": [ "lib/cpp/echostring.cc" ],
-	  "include_dirs" : [
-	    "<!(node -e \"require('nan')\")"
-	  ]
-    }
-  ]
+	"targets": [{
+		"target_name": "echostring",
+		"sources": [ "lib/cpp/echostring.cc" ],
+		"include_dirs" : [
+			"<!(node -e \"require('nan')\")"
+		],
+		'conditions': [
+			['OS=="linux"', {
+				'cflags' : [ '-std=c++0x' ]
+			}]
+		]
+	}]
 }
