@@ -10,7 +10,7 @@
 
 using namespace v8;
 
-#define _DEBUG_PRINT
+//#define _DEBUG_PRINT
 #ifdef _DEBUG_PRINT
 
 #if !(defined(_MSC_VER))
@@ -234,7 +234,9 @@ private:
 				else
 				{
 					std::string str = Trim(std::string(readstring));
-					oList.push_back(str);
+					if (0 != str.length()) {
+						oList.push_back(str);
+					}
 				}
 			}
 			instream.close();
