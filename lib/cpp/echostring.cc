@@ -16,10 +16,14 @@ using namespace v8;
 #if !(defined(_MSC_VER))
 #define __FUNCTION__ __func__
 #endif
-
+#include <sstream>
 #include <iostream>
+#include <iomanip>
+#define DEBUG_TABSPACE (50)
 static void debug_taskid( const char* aTag, const char* aName, const char* aTab) {
-	std::cout << aTag << aName << aTab << std::this_thread::get_id() << std::endl;
+	std::stringstream stream;
+	stream << aTag << aName << std::setw(DEBUG_TABSPACE) << std::setfill(' ') << ' ';
+	std::cout << stream.str().substr(0, DEBUG_TABSPACE) << std::this_thread::get_id() << std::endl;
 }
 #define DBPRINT(tag, name, tab) debug_taskid((tag), (name), (tab))
 #else
