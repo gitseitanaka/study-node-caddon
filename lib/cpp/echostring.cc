@@ -42,7 +42,7 @@ public:
 	AsyncWorker(
 		NanCallback* aProgressCallback,		// progress callback
 		NanCallback* aCallback,				// finish callback
-		std::string& aSettingPath,			// setting file path
+		std::string  aSettingPath,			// setting file path
 		int aInterval )						// interval
     : NanAsyncProgressWorker(aCallback), _progress(aProgressCallback),
 	  _setting_filepath(aSettingPath),
@@ -57,8 +57,6 @@ public:
 		uv_sem_init(&_wait_obj, 0);
 		uv_timer_init(uv_default_loop(), &_tick_timer);
 
-		NanScope();
-
 		workerpool.insert( std::make_pair( _workerid, this ) );
 		DBPRINT("[Exit ]" __FUNCTION__, "\t\t\t");
 	}
@@ -68,6 +66,7 @@ public:
 	virtual ~AsyncWorker() {
 		DBPRINT("[Enter]" __FUNCTION__, "\t\t");
 		uv_sem_destroy(&_wait_obj);
+		workerpool.erase(_workerid);
 #if 0
 		auto dump = [](std::vector<std::string>& v) {
 				for(auto i:v) {
@@ -77,9 +76,7 @@ public:
         };
         dump(_stringArray);
 #endif
-		NanScope();
 
-		workerpool.erase(_workerid);
 		DBPRINT("[Exit ]" __FUNCTION__, "\t\t");
 	}
 
@@ -96,11 +93,16 @@ public:
 
 		while(!_requestedAbort) {
 			uv_sem_wait(&_wait_obj);
-			aProgress.Send(reinterpret_cast<const char*>(_stringArray[0].c_str()),
-			 			   _stringArray[0].length());
+			if (_requestedAbort) { break; }
 
-			rotate(_stringArray.begin(), _stringArray.begin()+1, _stringArray.end());
+			if (!_stringArray.empty()){
+				aProgress.Send(reinterpret_cast<const char*>(_stringArray[0].c_str()),
+							_stringArray[0].length());
+
+				rotate(_stringArray.begin(), _stringArray.begin() + 1, _stringArray.end());
+			}
 		}
+		uv_close((uv_handle_t*)&_tick_timer, close_cb);
 		DBPRINT("[Exit ]" __FUNCTION__, "--\t\t\t");
 	}
 
@@ -117,7 +119,8 @@ public:
 			NanNew<Integer>(WorkerId()),
 			NanNew<String>(const_cast<char*>(str.c_str()))
 		};
-		_progress->Call(2, argv);
+		const int argc = 2;
+		_progress->Call(argc, argv);
 		DBPRINT("[Exit ]" __FUNCTION__, "\t");
 	}
 
@@ -128,8 +131,8 @@ public:
 		DBPRINT(__FUNCTION__, "\t\t\t");
 		NanScope();
 		Local<Value> argv[] = { NanNew<Integer>(WorkerId()) };
-
-		callback->Call(1, argv);
+		const int argc = 1;
+		callback->Call(argc, argv);
 	}
 
 	//----------------------
@@ -172,10 +175,10 @@ public:
 	// [v8 conntext]
 	static void Abort(int aWorkerId) {
 		DBPRINT("[Enter]" __FUNCTION__, "\t\t\t");
-		std::map<int, AsyncWorker*>::iterator ite = workerpool.find(aWorkerId);
+		std::map<int, AsyncWorker*>::iterator ite = AsyncWorker::workerpool.find(aWorkerId);
 		if (workerpool.end() != ite) {
 			(*ite).second->AbortRequest();
-			DBPRINT(__FUNCTION__, "--\t\t\t\t");
+			DBPRINT("[Trace]" __FUNCTION__, "--\t\t\t");
 		}
 		DBPRINT("[Exit ]" __FUNCTION__, "\t\t\t");
 	}
@@ -185,13 +188,23 @@ private:
 	//----------------------
 	// Tick処理
 	// [v8 conntext]
+#if (NODE_MODULE_VERSION < NODE_0_12_MODULE_VERSION)
+	static void Tick_timer_cb(uv_timer_t* aHandle, int) {
+#else
 	static void Tick_timer_cb(uv_timer_t* aHandle) {
+#endif
 		DBPRINT("[Enter]" __FUNCTION__, "\t\t");
 		if (0 != uv_is_active((uv_handle_t*) aHandle)) { // non-zero is active
 			AsyncWorker* instance = reinterpret_cast<AsyncWorker*>(aHandle->data);
 			instance->Tick();
 		}
 		DBPRINT("[Exit ]" __FUNCTION__, "\t\t");
+	}
+	//----------------------
+	// Handle closed cb
+	static void close_cb(uv_handle_t* handle) {
+		DBPRINT("[Enter]" __FUNCTION__, "\t\t\t");
+		DBPRINT("[Exit ]" __FUNCTION__, "\t\t\t");
 	}
 
 	//----------------------
