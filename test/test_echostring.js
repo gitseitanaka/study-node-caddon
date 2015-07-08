@@ -93,7 +93,8 @@ describe('string-echo', function () {
                             function(id) {        // finish
                               count++;
                               assert.equal(aGid, id);
-                              assert.equal(_called, times);
+                              assert(_called >= times);
+                              assert(_called <= times + 1);
 //                              console.log('***', id);
                               if (count >= tester) {
                                 done();
