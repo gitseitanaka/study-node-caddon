@@ -22,7 +22,7 @@ describe('string-echo', function () {
     
     it ('start->stop(none call cb)', function (done) {
       var called = 0;
-      gid = stringecho.async(testfilename, 100,
+      gid = stringecho.echoStringCyclic(testfilename, 100,
                 function(id, name) {  // process
                   called++;
                 },
@@ -31,14 +31,14 @@ describe('string-echo', function () {
                   done();
                 }
               );
-      stringecho.abort(gid);
+      stringecho.echoStringCyclicAbort(gid);
     });
 
     it ('start->stop(called cb 1 time)', function (done) {
       var interval = 100 /* ms */;
       var times = 1;
       var called = 0;
-      gid = stringecho.async(testfilename, interval,
+      gid = stringecho.echoStringCyclic(testfilename, interval,
                 function(id, name) {  // process
                   assert.equal(namearray[called], name);
                   called++;
@@ -49,7 +49,7 @@ describe('string-echo', function () {
                 }
               );
       setTimeout(function () {
-        stringecho.abort(gid);
+        stringecho.echoStringCyclicAbort(gid);
       }, interval * times);
     });
     
@@ -57,7 +57,7 @@ describe('string-echo', function () {
       var interval = 100 /* ms */;
       var times = 20;
       var called = 0;
-      gid = stringecho.async(testfilename, interval,
+      gid = stringecho.echoStringCyclic(testfilename, interval,
                 function(id, name) {  // process
                   assert.equal(namearray[called % namearray.length], name);
                   assert.equal(gid, id);
@@ -70,7 +70,7 @@ describe('string-echo', function () {
                 }
               );
       setTimeout(function () {
-        stringecho.abort(gid);
+        stringecho.echoStringCyclicAbort(gid);
       }, interval * times);
     });
     
@@ -83,7 +83,7 @@ describe('string-echo', function () {
       var func = function() {
           return function(aGid) {
                   var _called = 0;
-                  var _gid = stringecho.async(testfilename, interval,
+                  var _gid = stringecho.echoStringCyclic(testfilename, interval,
                             function(id, name) {  // process
                               assert.equal(namearray[_called % namearray.length], name);
                               assert.equal(aGid, id);
@@ -102,7 +102,7 @@ describe('string-echo', function () {
                           );
                   
                     setTimeout(function () {
-                      stringecho.abort(aGid);
+                      stringecho.echoStringCyclicAbort(aGid);
                     }, interval * times);
                   return _gid;
             };
@@ -110,7 +110,7 @@ describe('string-echo', function () {
       
       var nextgid = gid + 1;
       for (var i = 0; i < tester; i++) {
-//        console.log('');
+        console.log('');
         var testfunc = func();
         assert.equal(nextgid + i ,testfunc(nextgid + i));
       }

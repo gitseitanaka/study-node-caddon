@@ -326,9 +326,9 @@ NAN_METHOD(asyncAbortCommand) {
 //---------------------------
 // v8へのbind
 void Init(Handle<Object> exports) {
-	exports->Set(NanNew("async"),
+	exports->Set(NanNew("echoStringCyclic"),
 				NanNew<FunctionTemplate>(asyncCommand)->GetFunction());
-	exports->Set(NanNew("abort"),
+	exports->Set(NanNew("echoStringCyclicAbort"),
 				NanNew<FunctionTemplate>(asyncAbortCommand)->GetFunction());
 }
 NODE_MODULE(echostring, Init)

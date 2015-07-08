@@ -3,15 +3,16 @@
 
 var echostring = require('./index.js');
 
-//echostring.async(100, 100, function(result) {
+//echostring.echoStringCyclic(100, 100, function(result) {
 //	console.log('console++', result);
 //});
 //	console.log('+++', process.memoryUsage());
 
 //
 
-//var id = echostring.async("PathX", 500/*interval*/,
-var id = echostring.async("C:\\Users\\tanakahi\\nodeschool\\caddon\\test.txt", 500/*interval*/,
+//var id = echostring.echoStringCyclic("PathX", 500/*interval*/,
+//var id = echostring.echoStringCyclic("C:\\Users\\tanakahi\\nodeschool\\caddon\\test.txt", 100/*interval*/,
+var id = echostring.echoStringCyclic("test/teststrings.txt", 100/*interval*/,
 	function(id, hoge) {	// progress
 		console.log('@@@@@@@', id, hoge);
 	},
@@ -22,23 +23,26 @@ var id = echostring.async("C:\\Users\\tanakahi\\nodeschool\\caddon\\test.txt", 5
 
 	}
 );
-var id2 = echostring.async("C:\\Users\\tanakahi\\nodeschool\\caddon\\test.txt", 200/*interval*/,
-	function(id, hoge) {	// progress
-		console.log('@@@@@@@', id, hoge);
-	},
-	function(id) {	// finish
-		console.log('*******', id);
+echostring.echoStringCyclicAbort(id);
+console.log('++++++');
 
-	}
-);
+//var id2 = echostring.echoStringCyclic("C:\\Users\\tanakahi\\nodeschool\\caddon\\test.txt", 200/*interval*/,
+//	function(id, hoge) {	// progress
+//		console.log('@@@@@@@', id, hoge);
+//	},
+//	function(id) {	// finish
+//		console.log('*******', id);
+//
+//	}
+//);
 
-	setTimeout(function () {
-		echostring.abort(id);
-	}, 3000);
+//	setTimeout(function () {
+//		echostring.echoStringCyclicAbort(id);
+//	}, 500);
 
-	setTimeout(function () {
-		echostring.abort(id2);
-	}, 3000);
+//	setTimeout(function () {
+//		echostring.echoStringCyclicAbort(id);
+//	}, 600);
 
 
 //var timer = setInterval(function () {
@@ -53,10 +57,21 @@ var id2 = echostring.async("C:\\Users\\tanakahi\\nodeschool\\caddon\\test.txt", 
 
 		setTimeout(function () {
 //clearInterval(timer);
-			console.log('-------------------------------');
-			echostring.abort(id);
-			if(global.gc) {
-				 global.gc();
-				console.log('+++', process.memoryUsage());
-			}
-		}, 2000);
+			console.log('-');
+//			echostring.echoStringCyclicAbort(id);
+//			if(global.gc) {
+//				 global.gc();
+//				console.log('+++', process.memoryUsage());
+//			}
+		}, 600);
+
+
+		setTimeout(function () {
+			console.log('------------------------------+');
+		}, 1000);
+		setTimeout(function () {
+			console.log('------------------------------+');
+		}, 1000);
+		setTimeout(function () {
+			console.log('------------------------------+');
+		}, 1000);

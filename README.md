@@ -1,6 +1,7 @@
 * This repository is for my personal study of 'node.js'.
+* Used "uv_timer" / "NanAsyncProgressWorker"
 
-* node v0.12.2
+* node v0.12.5
 * nan@1.8.4
 
 
