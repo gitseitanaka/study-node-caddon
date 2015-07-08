@@ -4,18 +4,17 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node ./node_modules/mocha/bin/mocha --require intelli-espower-loader"
+    "test": "node ./node_modules/mocha/bin/mocha --require intelli-espower-loader --timeout 5000"
   },
   "author": "",
   "license": "MIT",
   "directories": {
-    "test": "test/"
+    "test": "test/*.js"
   },
   "dependencies": {
     "nan": "^1.8.4"
   },
   "devDependencies": {
-    "espower-loader": "^0.11.0",
     "intelli-espower-loader": "^0.7.0",
     "mocha": "^2.2.5",
     "power-assert": "^0.11.0"
