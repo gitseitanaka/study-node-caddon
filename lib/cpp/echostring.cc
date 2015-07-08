@@ -10,7 +10,7 @@
 
 using namespace v8;
 
-#define _DEBUG_PRINT
+//#define _DEBUG_PRINT
 #ifdef _DEBUG_PRINT
 
 #if !(defined(_MSC_VER))
