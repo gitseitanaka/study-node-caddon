@@ -8,7 +8,15 @@
 		'conditions': [
 			['OS=="linux"', {
 				'cflags' : [ '-std=c++0x' ]
-			}]
+			}],
+			['OS=="win"', {
+			  'msvs_settings': {
+				'VCCLCompilerTool': {
+				  'AdditionalOptions': [ '/EHsc' ]
+				}
+			  }
+			}],
+			
 		]
 	}]
 }
