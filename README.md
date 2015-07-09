@@ -1,19 +1,21 @@
+Study(private) of C Addon using Nan module.
+
 ====
 
 ## Overview
 
-* This repository is for my personal study of 'node.js(native module)'.
+* This repository is for my private study of 'node.js(native module)'.
 * Using the following:
-    - NanAsyncProgressWorker
+    - NanAsyncProgressWorker (uv_queue_work)
     - uv_async
     - uv_timer
     - uv_sem
     - etc..
 
 * Other
-    - node v0.12.5
+    - node v0.12.5 (0.10.26)
     - nan@1.8.4
-
+    - VS2013/2012(2008(mybe)), gcc version 4.8.4 (Ubuntu 4.8.4-2ubuntu1~14.04)
 
 ## APIs
 
@@ -44,8 +46,13 @@
 
 * see test/*.js
 
-## Usage
-
+## Setting
+	
+	# clone
+	git clone https://github.com/gitseitanaka/study-node-caddon.git
+	cd study-node-caddon
+	
+	# install
 	npm install
 	
 	# test
