@@ -2,12 +2,13 @@
 
 ## Overview
 
-* This repository is for my personal study of 'node.js'.
-* Used
-    -  NanAsyncProgressWorker
-    -  uv_async
-    -  uv_timer
-    -  uv_sem
+* This repository is for my personal study of 'node.js(native module)'.
+* Using the following:
+    - NanAsyncProgressWorker
+    - uv_async
+    - uv_timer
+    - uv_sem
+    - etc..
 
 * Other
     - node v0.12.5
@@ -38,6 +39,17 @@
 ###echoStringCyclicAbort(aHandleId)###
 
 +   `aHandleId` : a handle id.
+
+## Sample
+
+* see test/*.js
+
+## Usage
+
+	npm install
+	
+	# test
+	npm test
 
 
 ## Lisence
