@@ -1,12 +1,21 @@
+====
+
+## Overview
+
 * This repository is for my personal study of 'node.js'.
-* Used "uv_timer" / "NanAsyncProgressWorker"
+* Used
+    -  NanAsyncProgressWorker
+    -  uv_async
+    -  uv_timer
+    -  uv_sem
 
-* node v0.12.5
-* nan@1.8.4
+* Other
+    - node v0.12.5
+    - nan@1.8.4
 
 
-APIs
-----
+## APIs
+
 ### echoStringCyclic(aFilePath, aInterval, aCbProgress, aCbFinish) ###
 
 +   `aFilePath` :
@@ -29,3 +38,9 @@ APIs
 ###echoStringCyclicAbort(aHandleId)###
 
 +   `aHandleId` : a handle id.
+
+
+## Lisence
+
+* MIT
+
