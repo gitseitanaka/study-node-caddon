@@ -50,7 +50,7 @@ describe('string-echo', function () {
               );
       setTimeout(function () {
         stringecho.echoStringCyclicAbort(gid);
-      }, interval * times);
+      }, interval * times + (interval / 2));
     });
     
     it ('start->stop(called cb 20 time)', function (done) {
@@ -73,12 +73,12 @@ describe('string-echo', function () {
         stringecho.echoStringCyclicAbort(gid);
       }, interval * times);
     });
-    
+
     /* used default value(4) with "UV_THREADPOOL_SIZE". */
-    it ('start->stop(called cb 20 time) x 3', function (done) {
-      var interval = 200 /* ms */;
+    it ('start->stop(called cb 20 time) x 4', function (done) {
+      var interval = 100 /* ms */;
       var times = 20;
-      var tester = 4;
+      var tester = 5;
       var count = 0;
       var func = function() {
           return function(aGid) {
@@ -92,10 +92,10 @@ describe('string-echo', function () {
                             },
                             function(id) {        // finish
                               count++;
+                              //console.log('***', id, _called);
                               assert.equal(aGid, id);
-                              assert(_called >= times);
+                              assert(_called >= times - 1);
                               assert(_called <= times + 1);
-//                              console.log('***', id);
                               if (count >= tester) {
                                 done();
                               }
@@ -111,7 +111,7 @@ describe('string-echo', function () {
       
       var nextgid = gid + 1;
       for (var i = 0; i < tester; i++) {
-        console.log('');
+        //console.log('');
         var testfunc = func();
         assert.equal(nextgid + i ,testfunc(nextgid + i));
       }
