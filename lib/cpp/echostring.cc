@@ -392,4 +392,4 @@ void Init(Handle<Object> exports) {
 	exports->Set(NanNew("echoStringCyclicAbort"),
 				NanNew<FunctionTemplate>(asyncAbortCommand)->GetFunction());
 }
-NODE_MODULE(echostring, Init)
+NODE_MODULE(studyechostring, Init)
