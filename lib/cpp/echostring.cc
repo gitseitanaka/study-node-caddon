@@ -298,6 +298,7 @@ private:
 
 	//----------------------
 	// Trim
+	// http://program.station.ez-net.jp/special/handbook/cpp/string/trim.asp
 	static std::string Trim(const std::string& aString,
 					const char* aTrimCharacterList = " \t\v\r\n")
 	{
