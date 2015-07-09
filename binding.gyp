@@ -1,6 +1,6 @@
 {
     "targets": [{
-        "target_name": "echostring",
+        "target_name": "study-echostring",
         "sources": [ "lib/cpp/echostring.cc" ],
         "include_dirs" : [
             "<!(node -e \"require('nan')\")"
