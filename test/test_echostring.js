@@ -80,6 +80,10 @@ describe('string-echo', function () {
       var times = 20;
       var tester = 5;
       var count = 0;
+      var range = 1;
+      if ( /v0\.10\./g.exec(process.version) ){
+          range = 2;
+      }
       var func = function() {
           return function(aGid) {
                   var _called = 0;
@@ -94,8 +98,8 @@ describe('string-echo', function () {
                               count++;
                               //console.log('***', id, _called);
                               assert.equal(aGid, id);
-                              assert(_called >= times - 1);
-                              assert(_called <= times + 1);
+                              assert(_called >= times - range);
+                              assert(_called <= times + range);
                               if (count >= tester) {
                                 done();
                               }
