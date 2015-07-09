@@ -78,7 +78,7 @@ describe('string-echo', function () {
     it ('start->stop(called cb 20 time) x 4', function (done) {
       var interval = 100 /* ms */;
       var times = 20;
-      var tester = 5;
+      var tester = 4;
       var count = 0;
       var range = 1;
       if ( /v0\.10\./g.exec(process.version) ){
