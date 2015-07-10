@@ -3,16 +3,16 @@
 
 var echostring = require('./index.js');
 
-//echostring.echoStringCyclic(100, 100, function(result) {
+//echostring.start(100, 100, function(result) {
 //	console.log('console++', result);
 //});
 //	console.log('+++', process.memoryUsage());
 
 //
 
-//var id = echostring.echoStringCyclic("PathX", 500/*interval*/,
-//var id = echostring.echoStringCyclic("C:\\Users\\tanakahi\\nodeschool\\caddon\\test.txt", 100/*interval*/,
-var id = echostring.echoStringCyclic("test/teststrings.txt", 100/*interval*/,
+//var id = echostring.start("PathX", 500/*interval*/,
+//var id = echostring.start("C:\\Users\\tanakahi\\nodeschool\\caddon\\test.txt", 100/*interval*/,
+var id = echostring.start("test/teststrings.txt", 100/*interval*/,
 	function(id, hoge) {	// progress
 		console.log('@@@@@@@', id, hoge);
 	},
@@ -23,10 +23,10 @@ var id = echostring.echoStringCyclic("test/teststrings.txt", 100/*interval*/,
 
 	}
 );
-echostring.echoStringCyclicAbort(id);
+echostring.stop(id);
 console.log('++++++');
 
-//var id2 = echostring.echoStringCyclic("C:\\Users\\tanakahi\\nodeschool\\caddon\\test.txt", 200/*interval*/,
+//var id2 = echostring.start("C:\\Users\\tanakahi\\nodeschool\\caddon\\test.txt", 200/*interval*/,
 //	function(id, hoge) {	// progress
 //		console.log('@@@@@@@', id, hoge);
 //	},
@@ -37,11 +37,11 @@ console.log('++++++');
 //);
 
 //	setTimeout(function () {
-//		echostring.echoStringCyclicAbort(id);
+//		echostring.stop(id);
 //	}, 500);
 
 //	setTimeout(function () {
-//		echostring.echoStringCyclicAbort(id);
+//		echostring.stop(id);
 //	}, 600);
 
 
@@ -58,7 +58,7 @@ console.log('++++++');
 		setTimeout(function () {
 //clearInterval(timer);
 			console.log('-');
-//			echostring.echoStringCyclicAbort(id);
+//			echostring.stop(id);
 //			if(global.gc) {
 //				 global.gc();
 //				console.log('+++', process.memoryUsage());

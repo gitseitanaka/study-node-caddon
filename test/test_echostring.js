@@ -23,12 +23,12 @@ describe('study-caddon-string-echo', function () {
   });
   
   describe('args error', function () {
-    describe('echoStringCyclic', function () {
+    describe('start', function () {
       describe('arg 0', function () {
         it ('setting file is null', function () {
             assert.throws(
                 function() {
-                    stringecho.echoStringCyclic(null, 100,
+                    stringecho.start(null, 100,
                               function(id, name) {
                               },
                               function(id) {
@@ -39,7 +39,7 @@ describe('study-caddon-string-echo', function () {
         it ('setting file is undef', function () {
             assert.throws(
                 function() {
-                    stringecho.echoStringCyclic(undef, 100,
+                    stringecho.start(undef, 100,
                               function(id, name) {
                               },
                               function(id) {
@@ -50,7 +50,7 @@ describe('study-caddon-string-echo', function () {
         it ('setting file is length 0', function () {
             assert.throws(
                 function() {
-                    stringecho.echoStringCyclic('', 100,
+                    stringecho.start('', 100,
                               function(id, name) {
                               },
                               function(id) {
@@ -61,7 +61,7 @@ describe('study-caddon-string-echo', function () {
         it ('setting file is number', function () {
             assert.throws(
                 function() {
-                    stringecho.echoStringCyclic(1, 100,
+                    stringecho.start(1, 100,
                               function(id, name) {
                               },
                               function(id) {
@@ -74,7 +74,7 @@ describe('study-caddon-string-echo', function () {
         it ('interval is 0', function () {
             assert.throws(
                 function() {
-                    stringecho.echoStringCyclic(testfilename, 0,
+                    stringecho.start(testfilename, 0,
                               function(id, name) {
                               },
                               function(id) {
@@ -85,7 +85,7 @@ describe('study-caddon-string-echo', function () {
         it ('interval is -1', function () {
             assert.throws(
                 function() {
-                    stringecho.echoStringCyclic(testfilename, -1,
+                    stringecho.start(testfilename, -1,
                               function(id, name) {
                               },
                               function(id) {
@@ -96,7 +96,7 @@ describe('study-caddon-string-echo', function () {
         it ('interval is null', function () {
             assert.throws(
                 function() {
-                    stringecho.echoStringCyclic(testfilename, null,
+                    stringecho.start(testfilename, null,
                               function(id, name) {
                               },
                               function(id) {
@@ -107,7 +107,7 @@ describe('study-caddon-string-echo', function () {
         it ('interval is undef', function () {
             assert.throws(
                 function() {
-                    stringecho.echoStringCyclic(testfilename, undef,
+                    stringecho.start(testfilename, undef,
                               function(id, name) {
                               },
                               function(id) {
@@ -118,7 +118,7 @@ describe('study-caddon-string-echo', function () {
         it ('interval string', function () {
             assert.throws(
                 function() {
-                    stringecho.echoStringCyclic(testfilename, '100',
+                    stringecho.start(testfilename, '100',
                               function(id, name) {
                               },
                               function(id) {
@@ -131,7 +131,7 @@ describe('study-caddon-string-echo', function () {
         it ('progress cb is null', function () {
             assert.throws(
                 function() {
-                    stringecho.echoStringCyclic(testfilename, 100,
+                    stringecho.start(testfilename, 100,
                               null,
                               function(id) {
                               }
@@ -141,7 +141,7 @@ describe('study-caddon-string-echo', function () {
         it ('progress cb is undef', function () {
             assert.throws(
                 function() {
-                    stringecho.echoStringCyclic(testfilename, 100,
+                    stringecho.start(testfilename, 100,
                               undef,
                               function(id) {
                               }
@@ -151,7 +151,7 @@ describe('study-caddon-string-echo', function () {
         it ('progress cb is string', function () {
             assert.throws(
                 function() {
-                    stringecho.echoStringCyclic(testfilename, 100,
+                    stringecho.start(testfilename, 100,
                               'test',
                               function(id) {
                               }
@@ -161,7 +161,7 @@ describe('study-caddon-string-echo', function () {
         it ('progress cb is number', function () {
             assert.throws(
                 function() {
-                    stringecho.echoStringCyclic(testfilename, 100,
+                    stringecho.start(testfilename, 100,
                               1,
                               function(id) {
                               }
@@ -173,7 +173,7 @@ describe('study-caddon-string-echo', function () {
         it ('finished cb is null', function () {
             assert.throws(
                 function() {
-                    stringecho.echoStringCyclic(testfilename, 100,
+                    stringecho.start(testfilename, 100,
                               function(id) {
                               },
                               null
@@ -183,7 +183,7 @@ describe('study-caddon-string-echo', function () {
         it ('finished cb is undef', function () {
             assert.throws(
                 function() {
-                    stringecho.echoStringCyclic(testfilename, 100,
+                    stringecho.start(testfilename, 100,
                               function(id) {
                               },
                               undef
@@ -193,7 +193,7 @@ describe('study-caddon-string-echo', function () {
         it ('finished cb is string', function () {
             assert.throws(
                 function() {
-                    stringecho.echoStringCyclic(testfilename, 100,
+                    stringecho.start(testfilename, 100,
                               function(id) {
                               },
                               'test'
@@ -203,7 +203,7 @@ describe('study-caddon-string-echo', function () {
         it ('finished cb is number', function () {
             assert.throws(
                 function() {
-                    stringecho.echoStringCyclic(testfilename, 100,
+                    stringecho.start(testfilename, 100,
                               function(id) {
                               },
                               1
@@ -212,24 +212,24 @@ describe('study-caddon-string-echo', function () {
         });
       });
     });
-    describe('echoStringCyclicAbort', function () {
+    describe('stop', function () {
       describe('arg 0', function () {
         it ('discriptor id is null', function () {
             assert.throws(
                 function() {
-                    stringecho.echoStringCyclicAbort(null);
+                    stringecho.stop(null);
                 });
         });
         it ('discriptor id is string', function () {
             assert.throws(
                 function() {
-                    stringecho.echoStringCyclicAbort('');
+                    stringecho.stop('');
                 });
         });
         it ('discriptor id is undef', function () {
             assert.throws(
                 function() {
-                    stringecho.echoStringCyclicAbort(undef);
+                    stringecho.stop(undef);
                 });
         });
       });
@@ -241,7 +241,7 @@ describe('study-caddon-string-echo', function () {
     
     it ('start->stop(none call cb)', function (done) {
       var called = 0;
-      gid = stringecho.echoStringCyclic(testfilename, 100,
+      gid = stringecho.start(testfilename, 100,
                 function(id, name) {  // process
                   called++;
                 },
@@ -250,14 +250,14 @@ describe('study-caddon-string-echo', function () {
                   done();
                 }
               );
-      stringecho.echoStringCyclicAbort(gid);
+      stringecho.stop(gid);
     });
 
     it ('start->stop(called cb 1 time)', function (done) {
       var interval = 100 /* ms */;
       var times = 1;
       var called = 0;
-      gid = stringecho.echoStringCyclic(testfilename, interval,
+      gid = stringecho.start(testfilename, interval,
                 function(id, name) {  // process
                   assert.equal(namearray[called], name);
                   called++;
@@ -268,7 +268,7 @@ describe('study-caddon-string-echo', function () {
                 }
               );
       setTimeout(function () {
-        stringecho.echoStringCyclicAbort(gid);
+        stringecho.stop(gid);
       }, interval * times + (interval / 2));
     });
     
@@ -276,7 +276,7 @@ describe('study-caddon-string-echo', function () {
       var interval = 100 /* ms */;
       var times = 20;
       var called = 0;
-      gid = stringecho.echoStringCyclic(testfilename, interval,
+      gid = stringecho.start(testfilename, interval,
                 function(id, name) {  // process
                   assert.equal(namearray[called % namearray.length], name);
                   assert.equal(gid, id);
@@ -289,7 +289,7 @@ describe('study-caddon-string-echo', function () {
                 }
               );
       setTimeout(function () {
-        stringecho.echoStringCyclicAbort(gid);
+        stringecho.stop(gid);
       }, interval * times);
     });
 
@@ -306,7 +306,7 @@ describe('study-caddon-string-echo', function () {
       var func = function() {
           return function(aGid) {
                   var _called = 0;
-                  var _gid = stringecho.echoStringCyclic(testfilename, interval,
+                  var _gid = stringecho.start(testfilename, interval,
                             function(id, name) {  // process
                               assert.equal(namearray[_called % namearray.length], name);
                               assert.equal(aGid, id);
@@ -326,7 +326,7 @@ describe('study-caddon-string-echo', function () {
                           );
                   
                     setTimeout(function () {
-                      stringecho.echoStringCyclicAbort(aGid);
+                      stringecho.stop(aGid);
                     }, interval * times);
                   return _gid;
             };

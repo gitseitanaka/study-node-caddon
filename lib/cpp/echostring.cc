@@ -411,9 +411,9 @@ std::map<int, AsyncWorker*> AsyncWorker::workerpool;
 //---------------------------
 // bind to v8
 void Init(Handle<Object> exports) {
-	exports->Set(NanNew("echoStringCyclic"),
+	exports->Set(NanNew("start"),
 		NanNew<FunctionTemplate>(AsyncWorker::asyncCommand)->GetFunction());
-	exports->Set(NanNew("echoStringCyclicAbort"),
+	exports->Set(NanNew("stop"),
 		NanNew<FunctionTemplate>(AsyncWorker::asyncAbortCommand)->GetFunction());
 }
 NODE_MODULE(studyechostring, Init)

@@ -19,7 +19,7 @@ Study(private) of C Addon using Nan module.
 
 ## APIs
 
-### echoStringCyclic(aFilePath, aInterval, aCbProgress, aCbFinish) ###
+### start(aFilePath, aInterval, aCbProgress, aCbFinish) ###
 
 +   `aFilePath` :
     the path of the file that string has been described. as format below:
@@ -38,7 +38,7 @@ Study(private) of C Addon using Nan module.
 
 +   `Return` : a handle id.
 
-###echoStringCyclicAbort(aHandleId)###
+### stop(aHandleId)###
 
 +   `aHandleId` : a handle id.
 
@@ -57,6 +57,33 @@ Study(private) of C Addon using Nan module.
 	
 	# test
 	npm test
+
+## Debug(using visual studio (x64))
+
+	# 1. clone node
+	git clone https://github.com/joyent/node.git node.src
+	cd node.src
+	git fetch
+	git checkout -b v0.10.26 origin/v0.10.26-release
+
+	# 2. build node
+	vcbuild.bat debug nosign x64
+
+	# 3. rebuild c-addon
+	cd study-node-caddon
+	node-gyp clean
+	node-gyp configure rebuild --debug --nodedir="C:\XXXX\node.src" 
+	
+	# 4. open vs solution file at build/binding.sln on visual studio
+	
+	# 5. setting project properties
+	#    [Debug] -> [Command]     node.exe path
+	#            -> [CommandAarg] want to execute js
+	#            -> [Work Dir]    ".."
+	
+	# 6. change path "Release" to "Debug" at lib/js/echostring.js
+	//module.exports = require('../../build/Release/studyechostring');
+	module.exports = require('../../build/Debug/studyechostring');
 
 
 ## Lisence
