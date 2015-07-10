@@ -215,6 +215,67 @@ private:
 //Static menbers.
 public:
 	//----------------------
+	// form java script
+	// [v8 context ]
+	static NAN_METHOD(asyncCommand) {
+		DBPRINT("[V8   ]", __FUNCTION__);
+
+		NanScope();
+
+		if (!args[AsyncWorker::ArgSettingFilePath]->IsString()) {
+			return NanThrowError("param error : 'setting file' is not string.");
+		}
+		if (args[AsyncWorker::ArgSettingFilePath].As<String>()->Length() == 0) {
+			return NanThrowError("param error : 'setting file' is length 0.");
+		}
+		if (!args[AsyncWorker::ArgInterval]->IsNumber()) {
+			return NanThrowError("param error : 'interval' is not number.");
+		}
+		if (args[AsyncWorker::ArgInterval]->Int32Value() <= 0) {
+			return NanThrowError("param error : 'interval' is '0' or less.");
+		}
+		if (!args[AsyncWorker::ArgCbProgress]->IsFunction()) {
+			return NanThrowError("param error : 'progress cb' is not function.");
+		}
+		if (!args[AsyncWorker::ArgCbFinish]->IsFunction()) {
+			return NanThrowError("param error : 'finished cb' is not function.");
+		}
+
+		NanCallback* progress = new NanCallback(
+			args[AsyncWorker::ArgCbProgress].As<Function>());
+		NanCallback* callback = new NanCallback(
+			args[AsyncWorker::ArgCbFinish].As<Function>());
+		NanUtf8String* filename = new NanUtf8String(
+			args[AsyncWorker::ArgSettingFilePath]);
+
+		// "worker" will be destroyed by v8.
+		AsyncWorker* worker = new AsyncWorker(
+			progress,					// progress callback
+			callback,					// finish callback
+			// filename
+			std::string(filename->operator*()),
+			// interval
+			args[AsyncWorker::ArgInterval]->Int32Value());
+		NanAsyncQueueWorker(worker);
+
+		NanReturnValue(NanNew<Int32>(worker->WorkerId()));
+	}
+
+	//----------------------
+	// form java script
+	// [v8 context ]
+	static NAN_METHOD(asyncAbortCommand) {
+		DBPRINT("[V8   ]", __FUNCTION__);
+
+		NanScope();
+		if (!args[0/*id*/]->IsNumber()) {
+			return NanThrowError("param error : 'interval' is not number.");
+		}
+		AsyncWorker::Abort(args[0]->Int32Value());
+		NanReturnUndefined();
+	}
+
+	//----------------------
 	// Abort
 	// [v8 context ]
 	static void Abort(int aWorkerId) {
@@ -345,74 +406,14 @@ private:
 int AsyncWorker::shareworkerid = 0;
 std::map<int, AsyncWorker*> AsyncWorker::workerpool;
 
-//----------------------
-// form java script
-// [v8 context ]
-NAN_METHOD(asyncCommand) {
-	DBPRINT("[V8   ]", __FUNCTION__);
-
-	NanScope();
-	
-	if (!args[AsyncWorker::ArgSettingFilePath]->IsString()) {
-		return NanThrowError("param error : 'setting file' is not string.");
-	}
-	if (args[AsyncWorker::ArgSettingFilePath].As<String>()->Length() == 0) {
-		return NanThrowError("param error : 'setting file' is length 0.");
-	}
-	if (!args[AsyncWorker::ArgInterval]->IsNumber()) {
-		return NanThrowError("param error : 'interval' is not number.");
-	}
-	if (args[AsyncWorker::ArgInterval]->Int32Value() <= 0) {
-		return NanThrowError("param error : 'interval' is '0' or less.");
-	}
-	if (!args[AsyncWorker::ArgCbProgress]->IsFunction()) {
-		return NanThrowError("param error : 'progress cb' is not function.");
-	}
-	if (!args[AsyncWorker::ArgCbFinish]->IsFunction()) {
-		return NanThrowError("param error : 'finished cb' is not function.");
-	}
-
-	NanCallback* progress = new NanCallback(
-				args[AsyncWorker::ArgCbProgress].As<Function>());
-	NanCallback* callback = new NanCallback(
-				args[AsyncWorker::ArgCbFinish].As<Function>());
-	NanUtf8String* filename = new NanUtf8String(
-				args[AsyncWorker::ArgSettingFilePath]);
-
-	// "worker" will be destroyed by v8.
-	AsyncWorker* worker = new AsyncWorker(
-			progress,					// progress callback
-			callback,					// finish callback
-										// filename
-			std::string(filename->operator*()),
-										// interval
-			args[AsyncWorker::ArgInterval]->Int32Value());
-	NanAsyncQueueWorker(worker);
-
-	NanReturnValue(NanNew<Int32>(worker->WorkerId()));
-}
-
-//----------------------
-// form java script
-// [v8 context ]
-NAN_METHOD(asyncAbortCommand) {
-	DBPRINT("[V8   ]", __FUNCTION__);
-
-	NanScope();
-	if (!args[0/*id*/]->IsNumber()) {
-		return NanThrowError("param error : 'interval' is not number.");
-	}
-	AsyncWorker::Abort(args[0]->Int32Value());
-	NanReturnUndefined();
-}
 
 
 //---------------------------
 // bind to v8
 void Init(Handle<Object> exports) {
 	exports->Set(NanNew("echoStringCyclic"),
-				NanNew<FunctionTemplate>(asyncCommand)->GetFunction());
+		NanNew<FunctionTemplate>(AsyncWorker::asyncCommand)->GetFunction());
 	exports->Set(NanNew("echoStringCyclicAbort"),
-				NanNew<FunctionTemplate>(asyncAbortCommand)->GetFunction());
+		NanNew<FunctionTemplate>(AsyncWorker::asyncAbortCommand)->GetFunction());
 }
 NODE_MODULE(studyechostring, Init)
