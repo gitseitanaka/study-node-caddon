@@ -81,7 +81,7 @@ Study(private) of C Addon using Nan module.
 	#            -> [CommandAarg] want to execute js
 	#            -> [Work Dir]    ".."
 	
-	# 6. change path "Release" to "Debug" at lib/js/echostring.js
+	# 6. edit path "Release" to "Debug" at lib/js/echostring.js
 	//module.exports = require('../../build/Release/studyechostring');
 	module.exports = require('../../build/Debug/studyechostring');
 
