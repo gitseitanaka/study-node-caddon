@@ -335,6 +335,9 @@ private:
 								// for handles close
 	std::vector<uv_handle_t*> _handle_pool;
 
+
+	//----------------------
+	// static members
 								// global workerpool
 	static std::map<int, AsyncWorker*> workerpool;
 	static int shareworkerid;	// global workerid
@@ -349,11 +352,30 @@ NAN_METHOD(asyncCommand) {
 	DBPRINT("[V8   ]", __FUNCTION__);
 
 	NanScope();
+	
+	if (!args[AsyncWorker::ArgSettingFilePath]->IsString()) {
+		return NanThrowError("param error : 'setting file' is not string.");
+	}
+	if (args[AsyncWorker::ArgSettingFilePath].As<String>()->Length() == 0) {
+		return NanThrowError("param error : 'setting file' is length 0.");
+	}
+	if (!args[AsyncWorker::ArgInterval]->IsNumber()) {
+		return NanThrowError("param error : 'interval' is not number.");
+	}
+	if (args[AsyncWorker::ArgInterval]->Int32Value() <= 0) {
+		return NanThrowError("param error : 'interval' is '0' or less.");
+	}
+	if (!args[AsyncWorker::ArgCbProgress]->IsFunction()) {
+		return NanThrowError("param error : 'progress cb' is not function.");
+	}
+	if (!args[AsyncWorker::ArgCbFinish]->IsFunction()) {
+		return NanThrowError("param error : 'finished cb' is not function.");
+	}
 
 	NanCallback* progress = new NanCallback(
-				args[AsyncWorker::ArgCbProgress].As<v8::Function>());
+				args[AsyncWorker::ArgCbProgress].As<Function>());
 	NanCallback* callback = new NanCallback(
-				args[AsyncWorker::ArgCbFinish].As<v8::Function>());
+				args[AsyncWorker::ArgCbFinish].As<Function>());
 	NanUtf8String* filename = new NanUtf8String(
 				args[AsyncWorker::ArgSettingFilePath]);
 
@@ -364,10 +386,10 @@ NAN_METHOD(asyncCommand) {
 										// filename
 			std::string(filename->operator*()),
 										// interval
-			args[AsyncWorker::ArgInterval]->Uint32Value());
+			args[AsyncWorker::ArgInterval]->Int32Value());
 	NanAsyncQueueWorker(worker);
 
-	NanReturnValue(NanNew<Integer>(worker->WorkerId()));
+	NanReturnValue(NanNew<Int32>(worker->WorkerId()));
 }
 
 //----------------------
@@ -377,9 +399,10 @@ NAN_METHOD(asyncAbortCommand) {
 	DBPRINT("[V8   ]", __FUNCTION__);
 
 	NanScope();
-
-	AsyncWorker::Abort(args[0]->Uint32Value());
-
+	if (!args[0/*id*/]->IsNumber()) {
+		return NanThrowError("param error : 'interval' is not number.");
+	}
+	AsyncWorker::Abort(args[0]->Int32Value());
 	NanReturnUndefined();
 }
 

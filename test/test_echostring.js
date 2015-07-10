@@ -1,24 +1,243 @@
 var assert = require("power-assert");
 var stringecho = require('../index.js');
 
-var testfilename = 'test/teststrings.txt';
-var fs = require('fs'),
-    readline = require('readline'),
-    rs = fs.ReadStream(testfilename),
-    rl = readline.createInterface({'input': rs, 'output': {}});
-var namearray = [];
-rl.on('line', function (line) {
-    var name = line.trim();
-    if (name.length !== 0) {
-      namearray.push(name);
-    }
-});
-rl.resume();
+var testfilename;
+var namearray;
 
+describe('study-caddon-string-echo', function () {
+  testfilename = 'test/teststrings.txt';
+  namearray = [];
+  before(function(done) {
+    var fs = require('fs'),
+        readline = require('readline'),
+        rs = fs.ReadStream(testfilename),
+        rl = readline.createInterface({'input': rs, 'output': {}});
+    rl.on('line', function (line) {
+        var name = line.trim();
+        if (name.length !== 0) {
+          namearray.push(name);
+        }
+    });
+    rl.resume();
+    done();
+  });
+  
+  describe('args error', function () {
+    describe('echoStringCyclic', function () {
+      describe('arg 0', function () {
+        it ('setting file is null', function () {
+            assert.throws(
+                function() {
+                    stringecho.echoStringCyclic(null, 100,
+                              function(id, name) {
+                              },
+                              function(id) {
+                              }
+                            );
+                });
+        });
+        it ('setting file is undef', function () {
+            assert.throws(
+                function() {
+                    stringecho.echoStringCyclic(undef, 100,
+                              function(id, name) {
+                              },
+                              function(id) {
+                              }
+                            );
+                });
+        });
+        it ('setting file is length 0', function () {
+            assert.throws(
+                function() {
+                    stringecho.echoStringCyclic('', 100,
+                              function(id, name) {
+                              },
+                              function(id) {
+                              }
+                            );
+                });
+        });
+        it ('setting file is number', function () {
+            assert.throws(
+                function() {
+                    stringecho.echoStringCyclic(1, 100,
+                              function(id, name) {
+                              },
+                              function(id) {
+                              }
+                            );
+                });
+        });
+      });
+      describe('arg 1', function () {
+        it ('interval is 0', function () {
+            assert.throws(
+                function() {
+                    stringecho.echoStringCyclic(testfilename, 0,
+                              function(id, name) {
+                              },
+                              function(id) {
+                              }
+                            );
+                });
+        });
+        it ('interval is -1', function () {
+            assert.throws(
+                function() {
+                    stringecho.echoStringCyclic(testfilename, -1,
+                              function(id, name) {
+                              },
+                              function(id) {
+                              }
+                            );
+                });
+        });
+        it ('interval is null', function () {
+            assert.throws(
+                function() {
+                    stringecho.echoStringCyclic(testfilename, null,
+                              function(id, name) {
+                              },
+                              function(id) {
+                              }
+                            );
+                });
+        });
+        it ('interval is undef', function () {
+            assert.throws(
+                function() {
+                    stringecho.echoStringCyclic(testfilename, undef,
+                              function(id, name) {
+                              },
+                              function(id) {
+                              }
+                            );
+                });
+        });
+        it ('interval string', function () {
+            assert.throws(
+                function() {
+                    stringecho.echoStringCyclic(testfilename, '100',
+                              function(id, name) {
+                              },
+                              function(id) {
+                              }
+                            );
+                });
+        });
+      });
+      describe('arg 2', function () {
+        it ('progress cb is null', function () {
+            assert.throws(
+                function() {
+                    stringecho.echoStringCyclic(testfilename, 100,
+                              null,
+                              function(id) {
+                              }
+                            );
+                });
+        });
+        it ('progress cb is undef', function () {
+            assert.throws(
+                function() {
+                    stringecho.echoStringCyclic(testfilename, 100,
+                              undef,
+                              function(id) {
+                              }
+                            );
+                });
+        });
+        it ('progress cb is string', function () {
+            assert.throws(
+                function() {
+                    stringecho.echoStringCyclic(testfilename, 100,
+                              'test',
+                              function(id) {
+                              }
+                            );
+                });
+        });
+        it ('progress cb is number', function () {
+            assert.throws(
+                function() {
+                    stringecho.echoStringCyclic(testfilename, 100,
+                              1,
+                              function(id) {
+                              }
+                            );
+                });
+        });
+      });
+      describe('arg 3', function () {
+        it ('finished cb is null', function () {
+            assert.throws(
+                function() {
+                    stringecho.echoStringCyclic(testfilename, 100,
+                              function(id) {
+                              },
+                              null
+                            );
+                });
+        });
+        it ('finished cb is undef', function () {
+            assert.throws(
+                function() {
+                    stringecho.echoStringCyclic(testfilename, 100,
+                              function(id) {
+                              },
+                              undef
+                            );
+                });
+        });
+        it ('finished cb is string', function () {
+            assert.throws(
+                function() {
+                    stringecho.echoStringCyclic(testfilename, 100,
+                              function(id) {
+                              },
+                              'test'
+                            );
+                });
+        });
+        it ('finished cb is number', function () {
+            assert.throws(
+                function() {
+                    stringecho.echoStringCyclic(testfilename, 100,
+                              function(id) {
+                              },
+                              1
+                            );
+                });
+        });
+      });
+    });
+    describe('echoStringCyclicAbort', function () {
+      describe('arg 0', function () {
+        it ('discriptor id is null', function () {
+            assert.throws(
+                function() {
+                    stringecho.echoStringCyclicAbort(null);
+                });
+        });
+        it ('discriptor id is string', function () {
+            assert.throws(
+                function() {
+                    stringecho.echoStringCyclicAbort('');
+                });
+        });
+        it ('discriptor id is undef', function () {
+            assert.throws(
+                function() {
+                    stringecho.echoStringCyclicAbort(undef);
+                });
+        });
+      });
+    });
+  });
 
-describe('string-echo', function () {
-  var gid = 0;
   describe('start-stop', function () {
+    var gid = 0;
     
     it ('start->stop(none call cb)', function (done) {
       var called = 0;
@@ -98,8 +317,8 @@ describe('string-echo', function () {
                               count++;
                               //console.log('***', id, _called);
                               assert.equal(aGid, id);
-                              assert(_called >= times - range);
-                              assert(_called <= times + range);
+                              assert.ok(_called >= times - range, 'count error');
+                              assert.ok(_called <= times + range, 'count error');
                               if (count >= tester) {
                                 done();
                               }
