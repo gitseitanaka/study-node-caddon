@@ -3,6 +3,7 @@
 
 #include <thread>
 #include <map>
+#include <queue>
 #include <vector>
 #include <string>
 #include <fstream>
@@ -10,7 +11,7 @@
 
 using namespace v8;
 
-//#define _DEBUG_PRINT
+#define _DEBUG_PRINT
 #ifdef _DEBUG_PRINT
 
 #if !(defined(_MSC_VER))
@@ -35,8 +36,16 @@ static void debug_taskid( const char* aTag, const char* aName) {
 //
 // AsyncWorker(notify progress)
 //
-class AsyncWorker : public NanAsyncProgressWorker {
+//class AsyncWorker : public NanAsyncProgressWorker {
+class AsyncWorker {
 public:
+	//----------------------
+	// argments index.
+	enum AsyncMsgType{
+		TimerStart = 0,
+		Progress,
+		Exit
+	};
 	//----------------------
 	// argments index.
 	enum ArgIndex{
@@ -53,7 +62,8 @@ public:
 		NanCallback* aCallback,				// finish callback
 		std::string  aSettingPath,			// setting file path
 		int aInterval )						// interval
-    : NanAsyncProgressWorker(aCallback), _progress(aProgressCallback),
+//		: NanAsyncProgressWorker(aCallback), _progress(aProgressCallback),
+        : _progress(aProgressCallback), _finish(aCallback),
 	  _interval(aInterval),
 	  _setting_filepath(aSettingPath),
 	  _workerid(AsyncWorker::shareworkerid++),
@@ -65,6 +75,9 @@ public:
 		memset(&_wait_handle_close, 0, sizeof(_wait_handle_close));
 		uv_sem_init(&_wait_tick, 0);
 		uv_sem_init(&_wait_handle_close, 0);
+
+		memset(&_mutex, 0, sizeof(_mutex));
+		uv_mutex_init(&_mutex);
 
 		memset(&_tick_timer, 0, sizeof(_tick_timer));
 		memset(&_async_handle, 0, sizeof(_async_handle));
@@ -89,6 +102,7 @@ public:
 	// [v8 context ]
 	virtual ~AsyncWorker() {
 		DBPRINT("[Enter]", __FUNCTION__);
+		uv_mutex_destroy(&_mutex);
 		uv_sem_destroy(&_wait_tick);
 		uv_sem_destroy(&_wait_handle_close);
 		workerpool.erase(_workerid);
@@ -103,29 +117,38 @@ public:
 #endif
 		DBPRINT("[Exit ]", __FUNCTION__);
 	}
+	void Start() {
+		uv_thread_create(&_worker_handle, do_worker, this);
+	}
 
 	//----------------------
 	// Execute loop
 	// [non-v8     ]
-	virtual void Execute (const NanAsyncProgressWorker::ExecutionProgress& aProgress) {
+	virtual void ExecuteLoop() {
 		DBPRINT("[Enter]", __FUNCTION__);
 
 		readFile(_setting_filepath, _stringArray);
+		for (int i = 0; i < _stringArray.size(); i++) {
+			_stringIndexArray.push_back(i);
+		}
+
+		send_async_msg(AsyncMsgType::TimerStart);
 
 		uv_async_send(&_async_handle);	// send timer start
-		
+
 		// start tick loop
-		while(!_requestedAbort) {
+		while (!_requestedAbort) {
 			uv_sem_wait(&_wait_tick);
 			if (_requestedAbort) { break; }
 
-			if (!_stringArray.empty()){
-				aProgress.Send(reinterpret_cast<const char*>(_stringArray[0].c_str()),
-							_stringArray[0].length());
+			send_async_msg(AsyncMsgType::Progress);
 
-				rotate(_stringArray.begin(), _stringArray.begin() + 1, _stringArray.end());
+			if (!_stringArray.empty()){
+				rotate(_stringIndexArray.begin(), _stringIndexArray.begin() + 1, _stringIndexArray.end());
 			}
 		}
+
+		send_async_msg(AsyncMsgType::Exit);
 
 		// wait handles close after exited tick loop.
 		DBPRINT("[Trace]", __FUNCTION__);
@@ -134,18 +157,34 @@ public:
 			uv_sem_wait(&_wait_handle_close);
 			ite++;
 		}
+	}
+	private:
+	//----------------------
+	// Execute loop
+	// [non-v8     ]
+	static void do_worker(void* aObject) {
+		DBPRINT("[Enter]", __FUNCTION__);
+		reinterpret_cast<AsyncWorker*>(aObject)->ExecuteLoop();
 		DBPRINT("[Exit ]", __FUNCTION__);
 	}
+	void send_async_msg(AsyncWorker::AsyncMsgType aMessageType) {
+		DBPRINT("[Enter]", __FUNCTION__);
+		uv_mutex_lock(&_mutex);
+		_msg_queue.push(aMessageType);
+		uv_async_send(&_async_handle);
+		uv_mutex_unlock(&_mutex);
+		DBPRINT("[Exit ]", __FUNCTION__);
+	}
+	public:
 
 	//----------------------
 	// Notify progress
 	//   messaging form "aProgress.Send()" in "Execute()"
 	// [v8 context ]
-	virtual void HandleProgressCallback(const char* data, size_t size) {
+	virtual void ProgressCallback() {
 		DBPRINT("[Enter]", __FUNCTION__);
-
 		NanScope();
-		std::string str(data, size);
+		std::string str(_stringArray[_stringIndexArray[0]]);
 		Local<Value> argv[] = {
 			NanNew<Integer>(WorkerId()),
 			NanNew<String>(const_cast<char*>(str.c_str()))
@@ -158,12 +197,12 @@ public:
 	//----------------------
 	// Notify finish
 	// [v8 context ]
-	virtual void HandleOKCallback () {
+	virtual void FinishedCallback() {
 		DBPRINT("[Enter]", __FUNCTION__);
 		NanScope();
 		Local<Value> argv[] = { NanNew<Integer>(WorkerId()) };
 		const int argc = 1;
-		callback->Call(argc, argv);
+		_finish->Call(argc, argv);
 		DBPRINT("[Exit ]", __FUNCTION__);
 	}
 
@@ -204,10 +243,28 @@ private:
 		// [v8 context ]
 		void AsyncMsg() {
 			DBPRINT("[Enter]", __FUNCTION__);
-			if (!_requestedAbort) {
-				uv_timer_start(&_tick_timer, Tick_timer_cb, _interval, _interval);
+
+			uv_mutex_lock(&_mutex);
+			AsyncMsgType type = _msg_queue.front();
+			std::cout << _msg_queue.size() << std::endl;
+			//_msg_queue.pop();
+			uv_mutex_unlock(&_mutex);
+
+			switch (type)
+			{
+			case AsyncMsgType::TimerStart:
+				if (!_requestedAbort) {
+					uv_timer_start(&_tick_timer, Tick_timer_cb, _interval, _interval);
+				}
+				break;
+			case AsyncMsgType::Progress:
+				this->ProgressCallback();
+				break;
+			case AsyncMsgType::Exit:
+				this->FinishedCallback();
+				uv_close((uv_handle_t*)&_async_handle, close_cb);
+				break;
 			}
-			uv_close((uv_handle_t*)&_async_handle, close_cb);
 			DBPRINT("[Exit ]", __FUNCTION__);
 		}
 
@@ -256,7 +313,8 @@ public:
 			std::string(filename->operator*()),
 			// interval
 			args[AsyncWorker::ArgInterval]->Int32Value());
-		NanAsyncQueueWorker(worker);
+//		NanAsyncQueueWorker(worker);
+		worker->Start();
 
 		NanReturnValue(NanNew<Int32>(worker->WorkerId()));
 	}
@@ -373,16 +431,20 @@ private:
 		return result;
 	}
 
-//======================
+
+	//======================
 // attributes.
 private:
 	NanCallback* _progress;		// progress callback
+	NanCallback* _finish;		// finish call back callback
 	int _interval;				// interval
 
 								// file path
 	std::string _setting_filepath;
 								// string array
 	std::vector<std::string> _stringArray;
+	std::vector<int>		 _stringIndexArray;
+
 
 	int _workerid;				// worker id
     bool _requestedAbort;       // "abort" is requested.
@@ -390,8 +452,15 @@ private:
 	uv_sem_t _wait_tick;		// wait object for tick
 	uv_sem_t _wait_handle_close;// wait object for handles close
 
+	uv_mutex_t _mutex;			// mutex
+
 	uv_timer_t _tick_timer;		// tick timer
 	uv_async_t _async_handle;	// async handle
+
+	uv_thread_t _worker_handle;	// worker thread
+								
+								// message(async) queue
+	std::queue<AsyncMsgType> _msg_queue;
 
 								// for handles close
 	std::vector<uv_handle_t*> _handle_pool;
