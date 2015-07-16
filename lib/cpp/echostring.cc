@@ -42,10 +42,16 @@ static void debug_taskid( const char* aTag, const char* aName) {
 // AsyncWorker(notify progress)
 //
 class AsyncWorker {
-//----------------------
-// forward declaration
-class Request;
-enum AsyncMsgType;
+	//----------------------
+	// forward declaration
+	class Request;
+	//----------------------
+	// argments index.
+	enum AsyncMsgType{
+		TimerStart = 0,
+		Progress,
+		Exit
+	};
 
 public:
 	//----------------------
@@ -459,13 +465,6 @@ private:
 								// internal message(async) queue
 	std::queue<Request*>		_msg_queue;
 
-	//----------------------
-	// argments index.
-	enum AsyncMsgType{
-		TimerStart = 0,
-		Progress,
-		Exit
-	};
 	//----------------------
 	// internal request define
 	class Request {
