@@ -1,16 +1,18 @@
-Study(private) of C Addon using Nan module.
+# Study(private) of C Addon using Nan module.
 
-====
 
 ## Overview
 
 * This repository is for my private study of 'node.js(native module)'.
 * Using the following:
-    - NanAsyncProgressWorker (uv_queue_work)
+    - uv_thread (unuse uv_queue_work)
     - uv_async
     - uv_timer
     - uv_sem
     - etc..
+    
+    It is not recommended to think web-scale.
+    See <http://nikhilm.github.io/uvbook/threads.html#threads>
 
 * Other
     - node v0.12.5 (0.10.26)
@@ -85,6 +87,13 @@ Study(private) of C Addon using Nan module.
 	//module.exports = require('../../build/Release/studyechostring');
 	module.exports = require('../../build/Debug/studyechostring');
 
+
+## Version
+
+* draft 0.70
+    - Using 'uv_thread' (unuse 'NanAsyncProgressWorker')
+* draft 0.60
+    - Using 'NanAsyncProgressWorker'
 
 ## Lisence
 
