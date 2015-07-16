@@ -293,15 +293,14 @@ describe('study-caddon-string-echo', function () {
       }, interval * times);
     });
 
-    /* used default value(4) with "UV_THREADPOOL_SIZE". */
-    it ('start->stop(called cb 20 time) x 4', function (done) {
+    it ('start->stop(called cb 20 time) x 1000', function (done) {
       var interval = 100 /* ms */;
       var times = 20;
-      var tester = 4;
+      var tester =1000;
       var count = 0;
-      var range = 1;
+      var range = 2;
       if ( /v0\.10\./g.exec(process.version) ){
-          range = 2;
+          range = 4;
       }
       var func = function() {
           return function(aGid) {
@@ -315,9 +314,9 @@ describe('study-caddon-string-echo', function () {
                             },
                             function(id) {        // finish
                               count++;
-                              //console.log('***', id, _called);
+                              //console.log('***', id, _called, times);
                               assert.equal(aGid, id);
-                              assert.ok(_called >= times - range, 'count error');
+                              assert.ok(_called >= (times - range), 'count error');
                               assert.ok(_called <= times + range, 'count error');
                               if (count >= tester) {
                                 done();
