@@ -293,10 +293,11 @@ describe('study-caddon-string-echo', function () {
       }, interval * times);
     });
 
-    it ('start->stop(called cb 20 time) x 1000', function (done) {
+    var tester_number =1000;
+    it ('start->stop(called cb 20 time) x ' + tester_number, function (done) {
       var interval = 100 /* ms */;
       var times = 20;
-      var tester =1000;
+      var tester =tester_number;
       var count = 0;
       var range = 2;
       if ( /v0\.10\./g.exec(process.version) ){
