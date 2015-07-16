@@ -1,4 +1,7 @@
-﻿#include <nan.h>
+﻿#ifndef __ECHOSTRING_H__
+#define __ECHOSTRING_H__
+
+#include <nan.h>
 #include <uv.h>
 
 #include <map>
@@ -201,8 +204,9 @@ private:
 
 	//----------------------
 	// static members
-	// global workerpool
+								// global workerpool
 	static std::map<int, AsyncWorker*> workerpool;
 	static int shareworkerid;	// global workerid
 };
 
+#endif //__ECHOSTRING_H__
