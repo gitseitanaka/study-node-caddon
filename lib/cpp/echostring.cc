@@ -70,15 +70,14 @@ public:
 	  _interval(aInterval),
 	  _setting_filepath(aSettingPath),
 	  _workerid(AsyncWorker::shareworkerid++),
-	  _requestedAbort(false)
+	  _requestedAbort(false),
+	  _handle_count(0)
 	{
 		DBPRINT("[Enter]", __FUNCTION__);
 		DBPRINTA("[Trace]%s\n", __FUNCTION__);
 
-		memset(&_wait_tick, 0, sizeof(_wait_tick));
-		memset(&_wait_handle_close, 0, sizeof(_wait_handle_close));
+		//memset(&_wait_tick, 0, sizeof(_wait_tick));
 		uv_sem_init(&_wait_tick, 0);
-		uv_sem_init(&_wait_handle_close, 0);
 
 		memset(&_mutex, 0, sizeof(_mutex));
 		uv_mutex_init(&_mutex);
@@ -86,16 +85,10 @@ public:
 		uv_loop_t* loop = uv_default_loop();
 		memset(&_tick_timer, 0, sizeof(_tick_timer));
 		memset(&_async_handle, 0, sizeof(_async_handle));
-		uv_timer_init(loop, &_tick_timer);
-		uv_async_init(loop, &_async_handle, RequestAsyncMsg);
-
-		_handle_pool.push_back((uv_handle_t*)(&_tick_timer));
-		_handle_pool.push_back((uv_handle_t*)(&_async_handle));
-		std::vector<uv_handle_t*>::iterator ite = _handle_pool.begin();
-		while (ite != _handle_pool.end()) {
-			(*ite)->data = (void*)this;
-			ite++;
-		}
+		uv_timer_init(loop, &_tick_timer);						_handle_count++;
+		uv_async_init(loop, &_async_handle, RequestAsyncMsg);	_handle_count++;
+		_tick_timer.data = (void*)this;
+		_async_handle.data = (void*)this;
 
 		uv_thread_create(&_worker_handle, do_worker, this);
 
@@ -109,7 +102,6 @@ public:
 		DBPRINT("[Enter]", __FUNCTION__);
 		uv_mutex_destroy(&_mutex);
 		uv_sem_destroy(&_wait_tick);
-		uv_sem_destroy(&_wait_handle_close);
 		workerpool.erase(_workerid);
 
 		uv_thread_join(&_worker_handle);
@@ -150,13 +142,6 @@ public:
 
 		send_async_msg(new Request(AsyncMsgType::Exit));
 
-		// wait handles close after exited tick loop.
-		DBPRINT("[Trace]", __FUNCTION__);
-		std::vector<uv_handle_t*>::iterator ite = _handle_pool.begin();
-		while (ite != _handle_pool.end()) {
-			uv_sem_wait(&_wait_handle_close);
-			ite++;
-		}
 	}
 	private:
 	//----------------------
@@ -174,7 +159,7 @@ public:
 		uv_async_send(&_async_handle);
 		uv_mutex_unlock(&_mutex);
 
-		DBPRINTA(" @@@@@ %s send msg [%d]\n", __FUNCTION__, aMessageType);
+		DBPRINTA(" @@@@@ %s send msg [%d]\n", __FUNCTION__, aRequest->msgType());
 
 		DBPRINT("[Exit ]", __FUNCTION__);
 	}
@@ -251,7 +236,7 @@ private:
 				Request* req = _msg_queue.front();
 				_msg_queue.pop();
 
-				DBPRINTA(" @@@@@ %s msg is [%d]\n", __FUNCTION__, type);
+				DBPRINTA(" @@@@@ %s msg is [%d]\n", __FUNCTION__, req->msgType());
 				switch (req->msgType())
 				{
 				case AsyncMsgType::TimerStart:
@@ -390,8 +375,11 @@ private:
 	static void close_cb(uv_handle_t* aHandle) {
 		DBPRINT("[Enter]", __FUNCTION__);
 		AsyncWorker* instance = reinterpret_cast<AsyncWorker*>(aHandle->data);
-		uv_sem_post(&(instance->_wait_handle_close));
-		DBPRINT("[Exit ]", __FUNCTION__);
+		instance->_handle_count--;
+		if (0 == instance->_handle_count) {
+			delete instance;
+		}
+
 	}
 
 	//----------------------
@@ -454,21 +442,17 @@ private:
     bool _requestedAbort;       // "abort" is requested.
 
 	uv_sem_t _wait_tick;		// wait object for tick
-	uv_sem_t _wait_handle_close;// wait object for handles close
 
 	uv_mutex_t _mutex;			// mutex
 
-	uv_timer_t _tick_timer;		// tick timer
+	uv_timer_t _tick_timer;		// tick timer handle
 	uv_async_t _async_handle;	// async handle
+	int _handle_count;			// handle count
 
 	uv_thread_t _worker_handle;	// worker thread
 								
 								// message(async) queue
 	std::queue<Request*>		_msg_queue;
-
-								// for handles close
-	std::vector<uv_handle_t*> _handle_pool;
-
 
 	//----------------------
 	// static members
