@@ -23,12 +23,13 @@ describe('study-caddon-string-echo', function () {
   });
   
   describe('args error', function () {
-    describe('start', function () {
+
+    describe('new', function () {
       describe('arg 0', function () {
         it ('setting file is null', function () {
             assert.throws(
                 function() {
-                    stringecho.start(null, 100,
+                    new stringecho.AsyncWorker(null, 100,
                               function(id, name) {
                               },
                               function(id) {
@@ -39,7 +40,7 @@ describe('study-caddon-string-echo', function () {
         it ('setting file is undef', function () {
             assert.throws(
                 function() {
-                    stringecho.start(undef, 100,
+                    new stringecho.AsyncWorker(undef, 100,
                               function(id, name) {
                               },
                               function(id) {
@@ -50,7 +51,7 @@ describe('study-caddon-string-echo', function () {
         it ('setting file is length 0', function () {
             assert.throws(
                 function() {
-                    stringecho.start('', 100,
+                    new stringecho.AsyncWorker('', 100,
                               function(id, name) {
                               },
                               function(id) {
@@ -61,7 +62,7 @@ describe('study-caddon-string-echo', function () {
         it ('setting file is number', function () {
             assert.throws(
                 function() {
-                    stringecho.start(1, 100,
+                    new stringecho.AsyncWorker(1, 100,
                               function(id, name) {
                               },
                               function(id) {
@@ -74,7 +75,7 @@ describe('study-caddon-string-echo', function () {
         it ('interval is 0', function () {
             assert.throws(
                 function() {
-                    stringecho.start(testfilename, 0,
+                    new stringecho.AsyncWorker(testfilename, 0,
                               function(id, name) {
                               },
                               function(id) {
@@ -85,7 +86,7 @@ describe('study-caddon-string-echo', function () {
         it ('interval is -1', function () {
             assert.throws(
                 function() {
-                    stringecho.start(testfilename, -1,
+                    new stringecho.AsyncWorker(testfilename, -1,
                               function(id, name) {
                               },
                               function(id) {
@@ -96,7 +97,7 @@ describe('study-caddon-string-echo', function () {
         it ('interval is null', function () {
             assert.throws(
                 function() {
-                    stringecho.start(testfilename, null,
+                    new stringecho.AsyncWorker(testfilename, null,
                               function(id, name) {
                               },
                               function(id) {
@@ -107,7 +108,7 @@ describe('study-caddon-string-echo', function () {
         it ('interval is undef', function () {
             assert.throws(
                 function() {
-                    stringecho.start(testfilename, undef,
+                    new stringecho.AsyncWorker(testfilename, undef,
                               function(id, name) {
                               },
                               function(id) {
@@ -118,7 +119,7 @@ describe('study-caddon-string-echo', function () {
         it ('interval string', function () {
             assert.throws(
                 function() {
-                    stringecho.start(testfilename, '100',
+                    new stringecho.AsyncWorker(testfilename, '100',
                               function(id, name) {
                               },
                               function(id) {
@@ -131,7 +132,7 @@ describe('study-caddon-string-echo', function () {
         it ('progress cb is null', function () {
             assert.throws(
                 function() {
-                    stringecho.start(testfilename, 100,
+                    new stringecho.AsyncWorker(testfilename, 100,
                               null,
                               function(id) {
                               }
@@ -141,7 +142,7 @@ describe('study-caddon-string-echo', function () {
         it ('progress cb is undef', function () {
             assert.throws(
                 function() {
-                    stringecho.start(testfilename, 100,
+                    new stringecho.AsyncWorker(testfilename, 100,
                               undef,
                               function(id) {
                               }
@@ -151,7 +152,7 @@ describe('study-caddon-string-echo', function () {
         it ('progress cb is string', function () {
             assert.throws(
                 function() {
-                    stringecho.start(testfilename, 100,
+                    new stringecho.AsyncWorker(testfilename, 100,
                               'test',
                               function(id) {
                               }
@@ -161,7 +162,7 @@ describe('study-caddon-string-echo', function () {
         it ('progress cb is number', function () {
             assert.throws(
                 function() {
-                    stringecho.start(testfilename, 100,
+                    new stringecho.AsyncWorker(testfilename, 100,
                               1,
                               function(id) {
                               }
@@ -173,7 +174,7 @@ describe('study-caddon-string-echo', function () {
         it ('finished cb is null', function () {
             assert.throws(
                 function() {
-                    stringecho.start(testfilename, 100,
+                    new stringecho.AsyncWorker(testfilename, 100,
                               function(id) {
                               },
                               null
@@ -183,7 +184,7 @@ describe('study-caddon-string-echo', function () {
         it ('finished cb is undef', function () {
             assert.throws(
                 function() {
-                    stringecho.start(testfilename, 100,
+                    new stringecho.AsyncWorker(testfilename, 100,
                               function(id) {
                               },
                               undef
@@ -193,7 +194,7 @@ describe('study-caddon-string-echo', function () {
         it ('finished cb is string', function () {
             assert.throws(
                 function() {
-                    stringecho.start(testfilename, 100,
+                    new stringecho.AsyncWorker(testfilename, 100,
                               function(id) {
                               },
                               'test'
@@ -203,7 +204,7 @@ describe('study-caddon-string-echo', function () {
         it ('finished cb is number', function () {
             assert.throws(
                 function() {
-                    stringecho.start(testfilename, 100,
+                    new stringecho.AsyncWorker(testfilename, 100,
                               function(id) {
                               },
                               1
@@ -212,29 +213,46 @@ describe('study-caddon-string-echo', function () {
         });
       });
     });
+
+    describe('start', function () {
+    });
     describe('stop', function () {
-      describe('arg 0', function () {
-        it ('discriptor id is null', function () {
-            assert.throws(
-                function() {
-                    stringecho.stop(null);
-                });
-        });
-        it ('discriptor id is string', function () {
-            assert.throws(
-                function() {
-                    stringecho.stop('');
-                });
-        });
-        it ('discriptor id is undef', function () {
-            assert.throws(
-                function() {
-                    stringecho.stop(undef);
-                });
-        });
-      });
     });
   });
+
+	var workerid;
+  describe('new', function () {
+	  before(function(done) {
+			workerid = 0;
+			done();
+		});
+    it ('new', function () {
+      var worker = new stringecho.AsyncWorker(testfilename, 100,
+                function(id, name) {  // process
+                  called++;
+                },
+                function(id) {        // finish
+                  assert.equal(called, 0);
+                }
+              );
+			workerid = worker.id();
+			assert.equal(worker.id(), workerid);
+			workerid++;
+    });
+    it ('(new)', function () {
+      var worker = stringecho.AsyncWorker(testfilename, 100,
+                function(id, name) {  // process
+                  called++;
+                },
+                function(id) {        // finish
+                  assert.equal(called, 0);
+                }
+              );
+			assert.equal(worker.id(), workerid);
+			workerid++;
+    });
+	});
+
 
   describe('start-stop', function () {
     var gid = 0;
