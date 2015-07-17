@@ -45,7 +45,7 @@ AsyncWorker::AsyncWorker(
   _progress(aProgressCallback), _finish(aCallback),
   _interval(aInterval),
   _setting_filepath(aSettingPath),
-  _workerid(AsyncWorker::shareworkerid++),
+  _workerid(AsyncWorker::shareworkerid),
   _requestedAbort(false),
   _handle_count(0)
 {
@@ -63,8 +63,14 @@ AsyncWorker::AsyncWorker(
 	memset(&_async_handle, 0, sizeof(_async_handle));
 	uv_timer_init(loop, &_tick_handle);
 	uv_async_init(loop, &_async_handle, RequestAsyncMessageCb);
-	_tick_handle.data = (void*)this;		_handle_count++;
+	_tick_handle.data = (void*)this;	_handle_count++;
 	_async_handle.data = (void*)this;	_handle_count++;
+
+	if (AsyncWorker::shareworkerid < 0) {
+		AsyncWorker::shareworkerid = 0;
+	} else {
+		AsyncWorker::shareworkerid++;
+	}
 
 	DBPRINT("[Exit ]", __FUNCTION__);
 }
@@ -158,18 +164,6 @@ void AsyncWorker::SendAsyncMessage(Request* aRequest) {
 	DBPRINT("[Exit ]", __FUNCTION__);
 }
 //----------------------
-// Abort Request
-// [v8 context ]
-void AsyncWorker::AbortRequest() {
-	DBPRINT("[Enter]", __FUNCTION__);
-	_requestedAbort = true;
-	uv_timer_stop(&_tick_handle);
-	uv_unref((uv_handle_t*)&_tick_handle);
-	uv_close((uv_handle_t*)&_tick_handle, CloseCb);
-	uv_sem_post(&_wait_tick);
-	DBPRINT("[Exit ]", __FUNCTION__);
-}
-//----------------------
 // Tick
 // [v8 context ]
 void AsyncWorker::Tick() {
@@ -218,9 +212,37 @@ void AsyncWorker::OnAsyncMessage() {
 //----------------------
 // Start
 // [v8 context ]
-void AsyncWorker::Start() {
-	NanAssignPersistent(_myself, NanObjectWrapHandle(this));// for GB.
-	uv_thread_create(&_worker_handle, DoWork, this);
+int AsyncWorker::Start() {
+	if ( _myself.IsEmpty() ) {							// no-start
+		NanAssignPersistent(_myself, NanObjectWrapHandle(this));
+		uv_thread_create(&_worker_handle, DoWork, this);
+		return WorkerId();
+	} else {
+		return -1;
+	}
+}
+//----------------------
+// Abort Request
+// [v8 context ]
+int AsyncWorker::AbortRequest() {
+	DBPRINT("[Enter]", __FUNCTION__);
+	_requestedAbort = true;
+	if (uv_is_active((uv_handle_t*)&_tick_handle)) {
+		uv_timer_stop(&_tick_handle);
+		uv_unref((uv_handle_t*)&_tick_handle);
+		uv_close((uv_handle_t*)&_tick_handle, CloseCb);
+		uv_sem_post(&_wait_tick);
+	}
+
+	// require handle close
+	if ( _myself.IsEmpty() &&							// no-start
+		 uv_is_active((uv_handle_t*)&_async_handle) ) { // no-stop
+		this->FinishedCallback();
+		uv_close((uv_handle_t*)&_async_handle, CloseCb);
+		_handle_count--;
+	}
+	DBPRINT("[Exit ]", __FUNCTION__);
+	return _myself.IsEmpty() ? -1 : 0;
 }
 //----------------------
 // Destroy
@@ -228,7 +250,7 @@ void AsyncWorker::Start() {
 void AsyncWorker::Destroy() {
 	uv_thread_join(&_worker_handle);
 	if (! _myself.IsEmpty()) {
-		NanDisposePersistent(_myself);						// for GB.
+		NanDisposePersistent(_myself);
 	}
 }
 
@@ -260,27 +282,21 @@ NAN_METHOD(AsyncWorker::CmdNew) {
 	DBPRINT("[V8   ]", __FUNCTION__);
 	NanScope();
 	if (!args[AsyncWorker::ArgSettingFilePath]->IsString()) {
-		DBPRINT("--1", __FUNCTION__);
 		return NanThrowError("param error : 'setting file' is not string.");
 	}
 	if (args[AsyncWorker::ArgSettingFilePath].As<String>()->Length() == 0) {
-		DBPRINT("--2", __FUNCTION__);
 		return NanThrowError("param error : 'setting file' is length 0.");
 	}
 	if (!args[AsyncWorker::ArgInterval]->IsNumber()) {
-		DBPRINT("--3", __FUNCTION__);
 		return NanThrowError("param error : 'interval' is not number.");
 	}
 	if (args[AsyncWorker::ArgInterval]->Int32Value() <= 0) {
-		DBPRINT("--4", __FUNCTION__);
 		return NanThrowError("param error : 'interval' is '0' or less.");
 	}
 	if (!args[AsyncWorker::ArgCbProgress]->IsFunction()) {
-		DBPRINT("--5", __FUNCTION__);
 		return NanThrowError("param error : 'progress cb' is not function.");
 	}
 	if (!args[AsyncWorker::ArgCbFinish]->IsFunction()) {
-		DBPRINT("--6", __FUNCTION__);
 		return NanThrowError("param error : 'finished cb' is not function.");
 	}
 
@@ -326,9 +342,7 @@ NAN_METHOD(AsyncWorker::CmdStart) {
 
 	NanScope();
 	AsyncWorker* obj = ObjectWrap::Unwrap<AsyncWorker>(args.Holder());
-
-	obj->Start();
-	NanReturnValue(NanNew<Int32>(obj->WorkerId()));
+	NanReturnValue(NanNew<Int32>(obj->Start()));
 }
 
 //----------------------
@@ -338,8 +352,7 @@ NAN_METHOD(AsyncWorker::CmdStop) {
 
 	NanScope();
 	AsyncWorker* obj = ObjectWrap::Unwrap<AsyncWorker>(args.Holder());
-	obj->AbortRequest();
-	NanReturnUndefined();
+	NanReturnValue(NanNew<Int32>(obj->AbortRequest()));
 }
 //----------------------
 // [v8 context ]

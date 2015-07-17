@@ -96,10 +96,6 @@ private:
 	// [non-v8     ]
 	void SendAsyncMessage(Request* aRequest);
 	//----------------------
-	// Abort Request
-	// [v8 context ]
-	void AbortRequest();
-	//----------------------
 	// Tick
 	// [v8 context ]
 	void Tick();
@@ -109,12 +105,18 @@ private:
 	void OnAsyncMessage();
 	//----------------------
 	// Start
+	//  return    true : accept  false : not accept
 	// [v8 context ]
-	virtual void Start();
+	int Start();
+	//----------------------
+	// Abort Request
+	//  return    true : accept  false : not accept
+	// [v8 context ]
+	int AbortRequest();
 	//----------------------
 	// Destroy
 	// [v8 context ]
-	virtual void Destroy();
+	void Destroy();
 
 //======================
 //call backs.

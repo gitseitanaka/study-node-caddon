@@ -220,8 +220,8 @@ describe('study-caddon-string-echo', function () {
     });
   });
 
-	var workerid;
   describe('new', function () {
+	  var workerid;
 	  before(function(done) {
 			workerid = 0;
 			done();
@@ -238,6 +238,7 @@ describe('study-caddon-string-echo', function () {
 			workerid = worker.id();
 			assert.equal(worker.id(), workerid);
 			workerid++;
+			worker = null;
     });
     it ('(new)', function () {
       var worker = stringecho.AsyncWorker(testfilename, 100,
@@ -250,25 +251,54 @@ describe('study-caddon-string-echo', function () {
               );
 			assert.equal(worker.id(), workerid);
 			workerid++;
+			worker = null;
     });
 	});
 
 
   describe('start-stop', function () {
-    var gid = 0;
-    
-    it ('start->stop(none call cb)', function (done) {
+		var workerid = 0;
+    it ('(   )->stop(none call cb)', function () {
       var called = 0;
-      gid = stringecho.start(testfilename, 100,
+      var worker = stringecho.AsyncWorker(testfilename, 100,
                 function(id, name) {  // process
                   called++;
                 },
                 function(id) {        // finish
                   assert.equal(called, 0);
-                  done();
                 }
               );
-      stringecho.stop(gid);
+      
+      assert.equal(worker.stop(), -1);
+      assert.equal(worker.stop(), -1);
+      workerid = worker.id() + 1;
+    });
+    it ('start->stop(none call cb)', function () {
+      var called = 0;
+      var worker = stringecho.AsyncWorker(testfilename, 100,
+                function(id, name) {  // process
+                  called++;
+                },
+                function(id) {        // finish
+                  assert.equal(called, 0);
+                }
+              );
+      assert.equal(worker.start(), workerid);
+			workerid++;
+      assert.equal(worker.stop(), 0);
+    });
+    it ('start->start->stop(none call cb)', function () {
+      var called = 0;
+      var worker = stringecho.AsyncWorker(testfilename, 100,
+                function(id, name) {  // process
+                  called++;
+                },
+                function(id) {        // finish
+                  assert.equal(called, 0);
+                }
+              );
+      worker.start();
+      assert.equal(worker.stop(), 0);
     });
 
     it ('start->stop(called cb 1 time)', function (done) {
