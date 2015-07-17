@@ -6,7 +6,7 @@
 
 using namespace v8;
 
-#define _DEBUG_PRINT
+//#define _DEBUG_PRINT
 #ifdef _DEBUG_PRINT
 
 #if !(defined(_MSC_VER))
@@ -227,7 +227,9 @@ void AsyncWorker::Start() {
 // [v8 context ]
 void AsyncWorker::Destroy() {
 	uv_thread_join(&_worker_handle);
-	NanDisposePersistent(_myself);
+	if (! _myself.IsEmpty()) {
+		NanDisposePersistent(_myself);						// for GB.
+	}
 }
 
 //----------------------
@@ -258,22 +260,28 @@ NAN_METHOD(AsyncWorker::CmdNew) {
 	DBPRINT("[V8   ]", __FUNCTION__);
 	NanScope();
 	if (!args[AsyncWorker::ArgSettingFilePath]->IsString()) {
-		NanThrowError("param error : 'setting file' is not string.");
+		DBPRINT("--1", __FUNCTION__);
+		return NanThrowError("param error : 'setting file' is not string.");
 	}
 	if (args[AsyncWorker::ArgSettingFilePath].As<String>()->Length() == 0) {
-		NanThrowError("param error : 'setting file' is length 0.");
+		DBPRINT("--2", __FUNCTION__);
+		return NanThrowError("param error : 'setting file' is length 0.");
 	}
 	if (!args[AsyncWorker::ArgInterval]->IsNumber()) {
-		NanThrowError("param error : 'interval' is not number.");
+		DBPRINT("--3", __FUNCTION__);
+		return NanThrowError("param error : 'interval' is not number.");
 	}
 	if (args[AsyncWorker::ArgInterval]->Int32Value() <= 0) {
-		NanThrowError("param error : 'interval' is '0' or less.");
+		DBPRINT("--4", __FUNCTION__);
+		return NanThrowError("param error : 'interval' is '0' or less.");
 	}
 	if (!args[AsyncWorker::ArgCbProgress]->IsFunction()) {
-		NanThrowError("param error : 'progress cb' is not function.");
+		DBPRINT("--5", __FUNCTION__);
+		return NanThrowError("param error : 'progress cb' is not function.");
 	}
 	if (!args[AsyncWorker::ArgCbFinish]->IsFunction()) {
-		NanThrowError("param error : 'finished cb' is not function.");
+		DBPRINT("--6", __FUNCTION__);
+		return NanThrowError("param error : 'finished cb' is not function.");
 	}
 
 	if (args.IsConstructCall()) {
