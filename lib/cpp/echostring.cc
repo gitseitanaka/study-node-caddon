@@ -6,7 +6,7 @@
 
 using namespace v8;
 
-//#define _DEBUG_PRINT
+#define _DEBUG_PRINT
 #ifdef _DEBUG_PRINT
 
 #if !(defined(_MSC_VER))
@@ -41,7 +41,8 @@ AsyncWorker::AsyncWorker(
 	NanCallback* aCallback,				// finish callback
 	std::string  aSettingPath,			// setting file path
 	int aInterval )						// interval
-    : _progress(aProgressCallback), _finish(aCallback),
+	: node::ObjectWrap(),
+  _progress(aProgressCallback), _finish(aCallback),
   _interval(aInterval),
   _setting_filepath(aSettingPath),
   _workerid(AsyncWorker::shareworkerid++),
@@ -61,11 +62,10 @@ AsyncWorker::AsyncWorker(
 	memset(&_tick_handle, 0, sizeof(_tick_handle));
 	memset(&_async_handle, 0, sizeof(_async_handle));
 	uv_timer_init(loop, &_tick_handle);
-	uv_async_init(loop, &_async_handle, RequestAsyncMsg);
+	uv_async_init(loop, &_async_handle, RequestAsyncMessageCb);
 	_tick_handle.data = (void*)this;		_handle_count++;
 	_async_handle.data = (void*)this;	_handle_count++;
 
-	workerpool.insert( std::make_pair( _workerid, this ) );
 	DBPRINT("[Exit ]", __FUNCTION__);
 }
 //----------------------
@@ -75,7 +75,6 @@ AsyncWorker::~AsyncWorker() {
 	DBPRINT("[Enter]", __FUNCTION__);
 	uv_mutex_destroy(&_mutex);
 	uv_sem_destroy(&_wait_tick);
-	workerpool.erase(_workerid);
 
 #if 0
 	auto dump = [](std::vector<std::string>& v) {
@@ -119,7 +118,6 @@ void AsyncWorker::ExecuteLoop() {
 
 //----------------------
 // Notify progress
-//   messaging form "aProgress.Send()" in "Execute()"
 // [v8 context ]
 void AsyncWorker::ProgressCallback(std::string& aString) {
 	DBPRINT("[Enter]", __FUNCTION__);
@@ -147,7 +145,6 @@ void AsyncWorker::FinishedCallback() {
 
 //----------------------
 // Send Message to v8 context
-//   "aRequest" will be free by internal process.
 // [non-v8     ]
 void AsyncWorker::SendAsyncMessage(Request* aRequest) {
 	DBPRINT("[Enter]", __FUNCTION__);
@@ -187,7 +184,7 @@ void AsyncWorker::Tick() {
 //----------------------
 // Timer Start
 // [v8 context ]
-void AsyncWorker::AsyncMsg() {
+void AsyncWorker::OnAsyncMessage() {
 	DBPRINT("[Enter]", __FUNCTION__);
 	uv_mutex_lock(&_mutex);
 	DBPRINTA(" @@@@@ %s queue size is [%d]\n", __FUNCTION__, _msg_queue.size());
@@ -199,7 +196,7 @@ void AsyncWorker::AsyncMsg() {
 		{
 		case AsyncMsgType::TimerStart:
 			if (!_requestedAbort) {
-				uv_timer_start(&_tick_handle, Tick_timer_cb, _interval, _interval);
+				uv_timer_start(&_tick_handle, TickTimerCb, _interval, _interval);
 			}
 			break;
 		case AsyncMsgType::Progress:
@@ -222,6 +219,7 @@ void AsyncWorker::AsyncMsg() {
 // Start
 // [v8 context ]
 void AsyncWorker::Start() {
+	NanAssignPersistent(_myself, NanObjectWrapHandle(this));// for GB.
 	uv_thread_create(&_worker_handle, DoWork, this);
 }
 //----------------------
@@ -229,89 +227,129 @@ void AsyncWorker::Start() {
 // [v8 context ]
 void AsyncWorker::Destroy() {
 	uv_thread_join(&_worker_handle);
-	delete this;
+	NanDisposePersistent(_myself);
 }
 
 //----------------------
-// form java script
 // [v8 context ]
-NAN_METHOD(AsyncWorker::asyncCommand) {
+void AsyncWorker::Init(Handle<Object> aExports)
+{
 	DBPRINT("[V8   ]", __FUNCTION__);
+	// NanScope();  <- no need
+	
+	// Prepare constructor template
+	Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>(CmdNew);
+    tpl->SetClassName(NanNew("AsyncWorker"));
+	tpl->InstanceTemplate()->SetInternalFieldCount(1);
+	
+    // Prototype
+    NanSetPrototypeTemplate(tpl, "start", NanNew<FunctionTemplate>(CmdStart));
+    NanSetPrototypeTemplate(tpl, "stop", NanNew<FunctionTemplate>(CmdStop));
+	NanSetPrototypeTemplate(tpl, "id", NanNew<FunctionTemplate>(CmdGetId));
 
+	// Return created object via the arg.
+	NanAssignPersistent<Function>(_constructor, tpl->GetFunction());
+    aExports->Set(NanNew("AsyncWorker"), tpl->GetFunction());
+}
+
+//----------------------
+// [v8 context ]
+NAN_METHOD(AsyncWorker::CmdNew) {
+	DBPRINT("[V8   ]", __FUNCTION__);
 	NanScope();
-
 	if (!args[AsyncWorker::ArgSettingFilePath]->IsString()) {
-		return NanThrowError("param error : 'setting file' is not string.");
+		NanThrowError("param error : 'setting file' is not string.");
 	}
 	if (args[AsyncWorker::ArgSettingFilePath].As<String>()->Length() == 0) {
-		return NanThrowError("param error : 'setting file' is length 0.");
+		NanThrowError("param error : 'setting file' is length 0.");
 	}
 	if (!args[AsyncWorker::ArgInterval]->IsNumber()) {
-		return NanThrowError("param error : 'interval' is not number.");
+		NanThrowError("param error : 'interval' is not number.");
 	}
 	if (args[AsyncWorker::ArgInterval]->Int32Value() <= 0) {
-		return NanThrowError("param error : 'interval' is '0' or less.");
+		NanThrowError("param error : 'interval' is '0' or less.");
 	}
 	if (!args[AsyncWorker::ArgCbProgress]->IsFunction()) {
-		return NanThrowError("param error : 'progress cb' is not function.");
+		NanThrowError("param error : 'progress cb' is not function.");
 	}
 	if (!args[AsyncWorker::ArgCbFinish]->IsFunction()) {
-		return NanThrowError("param error : 'finished cb' is not function.");
+		NanThrowError("param error : 'finished cb' is not function.");
 	}
 
-	NanCallback* progress = new NanCallback(
-		args[AsyncWorker::ArgCbProgress].As<Function>());
-	NanCallback* callback = new NanCallback(
-		args[AsyncWorker::ArgCbFinish].As<Function>());
-	NanUtf8String* filename = new NanUtf8String(
-		args[AsyncWorker::ArgSettingFilePath]);
+	if (args.IsConstructCall()) {
+		// Invoked as constructor: `new MyObject(...)`
+		NanCallback* progress = new NanCallback(
+			args[AsyncWorker::ArgCbProgress].As<Function>());
+		NanCallback* callback = new NanCallback(
+			args[AsyncWorker::ArgCbFinish].As<Function>());
+		NanUtf8String* filename = new NanUtf8String(
+			args[AsyncWorker::ArgSettingFilePath]);
 
-	// "worker" will be destroyed by itself.
-	AsyncWorker* worker = new AsyncWorker(
-		progress,					// progress callback
-		callback,					// finish callback
-		// filename
-		std::string(filename->operator*()),
-		// interval
-		args[AsyncWorker::ArgInterval]->Int32Value());
-	worker->Start();
-
-	NanReturnValue(NanNew<Int32>(worker->WorkerId()));
-}
-
-//----------------------
-// form java script
-// [v8 context ]
-NAN_METHOD(AsyncWorker::asyncAbortCommand) {
-	DBPRINT("[V8   ]", __FUNCTION__);
-
-	NanScope();
-	if (!args[0/*id*/]->IsNumber()) {
-		return NanThrowError("param error : 'interval' is not number.");
+		// "worker" will be destroyed by itself.
+		AsyncWorker* obj = new AsyncWorker(
+			progress,					// progress callback
+			callback,					// finish callback
+			// filename
+			std::string(filename->operator*()),
+			// interval
+			args[AsyncWorker::ArgInterval]->Int32Value());
+		
+		obj->Wrap(args.This());
+		NanReturnThis();
 	}
-	AsyncWorker::Abort(args[0]->Int32Value());
+	else {
+		// Invoked as constructor: `MyObject(...)`
+		const int argc = 4;
+		Local<Value> argv[argc] = {
+				args[ArgSettingFilePath],
+				args[ArgInterval       ],
+				args[ArgCbProgress     ],
+				args[ArgCbFinish       ] };
+		Local<Function> cons = NanNew<Function>(_constructor);
+		NanReturnValue(cons->NewInstance(argc, argv));
+	}
 	NanReturnUndefined();
 }
 
 //----------------------
-// Abort
 // [v8 context ]
-void AsyncWorker::Abort(int aWorkerId) {
-	DBPRINT("[Enter]", __FUNCTION__);
-	std::map<int, AsyncWorker*>::iterator ite = AsyncWorker::workerpool.find(aWorkerId);
-	if (workerpool.end() != ite) {
-		(*ite).second->AbortRequest();
-		DBPRINT("[Trace]", __FUNCTION__);
-	}
-	DBPRINT("[Exit ]", __FUNCTION__);
+NAN_METHOD(AsyncWorker::CmdStart) {
+	DBPRINT("[V8   ]", __FUNCTION__);
+
+	NanScope();
+	AsyncWorker* obj = ObjectWrap::Unwrap<AsyncWorker>(args.Holder());
+
+	obj->Start();
+	NanReturnValue(NanNew<Int32>(obj->WorkerId()));
 }
+
+//----------------------
+// [v8 context ]
+NAN_METHOD(AsyncWorker::CmdStop) {
+	DBPRINT("[V8   ]", __FUNCTION__);
+
+	NanScope();
+	AsyncWorker* obj = ObjectWrap::Unwrap<AsyncWorker>(args.Holder());
+	obj->AbortRequest();
+	NanReturnUndefined();
+}
+//----------------------
+// [v8 context ]
+NAN_METHOD(AsyncWorker::CmdGetId) {
+	DBPRINT("[V8   ]", __FUNCTION__);
+
+	NanScope();
+	AsyncWorker* obj = ObjectWrap::Unwrap<AsyncWorker>(args.Holder());
+	NanReturnValue(NanNew<Int32>(obj->WorkerId()));
+}
+
 //----------------------
 // Tick cb
 // [v8 context ]
 #if (NODE_MODULE_VERSION < NODE_0_12_MODULE_VERSION)
-void AsyncWorker::Tick_timer_cb(uv_timer_t* aHandle, int/*UNUSED*/) {
+void AsyncWorker::TickTimerCb(uv_timer_t* aHandle, int/*UNUSED*/) {
 #else
-void AsyncWorker::Tick_timer_cb(uv_timer_t* aHandle) {
+void AsyncWorker::TickTimerCb(uv_timer_t* aHandle) {
 #endif
 	DBPRINT("[Enter]", __FUNCTION__);
 	if (0 != uv_is_active((uv_handle_t*) aHandle)) { // non-zero is active
@@ -324,14 +362,14 @@ void AsyncWorker::Tick_timer_cb(uv_timer_t* aHandle) {
 // Request cb to start timer
 // [v8 context ]
 #if (NODE_MODULE_VERSION < NODE_0_12_MODULE_VERSION)
-void AsyncWorker::RequestAsyncMsg(uv_async_t* aHandle, int/*UNUSED*/) {
+void AsyncWorker::RequestAsyncMessageCb(uv_async_t* aHandle, int/*UNUSED*/) {
 #else
-void AsyncWorker::RequestAsyncMsg(uv_async_t* aHandle) {
+void AsyncWorker::RequestAsyncMessageCb(uv_async_t* aHandle) {
 #endif
 	DBPRINT("[Enter]", __FUNCTION__);
 	if (0 != uv_is_active((uv_handle_t*)aHandle)) { // non-zero is active
 		AsyncWorker* instance = reinterpret_cast<AsyncWorker*>(aHandle->data);
-		instance->AsyncMsg();
+		instance->OnAsyncMessage();
 	}
 	DBPRINT("[Exit ]", __FUNCTION__);
 }
@@ -345,6 +383,7 @@ void AsyncWorker::CloseCb(uv_handle_t* aHandle) {
 	if (0 == instance->_handle_count) {
 		instance->Destroy();
 	}
+	DBPRINT("[Exit ]", __FUNCTION__);
 }
 //----------------------
 // Execute loop
@@ -414,15 +453,7 @@ AsyncWorker::Request::~Request(){
 }
 
 int AsyncWorker::shareworkerid = 0;
-std::map<int, AsyncWorker*> AsyncWorker::workerpool;
 
+v8::Persistent<v8::Function> AsyncWorker::_constructor;
 
-//---------------------------
-// bind to v8
-void Init(Handle<Object> exports) {
-	exports->Set(NanNew("start"),
-		NanNew<FunctionTemplate>(AsyncWorker::asyncCommand)->GetFunction());
-	exports->Set(NanNew("stop"),
-		NanNew<FunctionTemplate>(AsyncWorker::asyncAbortCommand)->GetFunction());
-}
-NODE_MODULE(studyechostring, Init)
+//EOF

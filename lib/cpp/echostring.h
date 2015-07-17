@@ -13,7 +13,36 @@
 //
 // AsyncWorker(notify progress)
 //
-class AsyncWorker {
+class AsyncWorker : public node::ObjectWrap {
+
+public:
+//======================
+// for v8 methods.
+	//----------------------
+	// initial (one time call)
+	// [v8 context ]
+	static void Init(v8::Handle<v8::Object> aExports);
+private:
+	//----------------------
+	// "new"
+	// [v8 context ]
+	static NAN_METHOD(CmdNew);
+	//----------------------
+	// "start"
+	// [v8 context ]
+	static NAN_METHOD(CmdStart);
+	//----------------------
+	// "stop"
+	// [v8 context ]
+	static NAN_METHOD(CmdStop);
+	//----------------------
+	// "id"
+	// [v8 context ]
+	static NAN_METHOD(CmdGetId);
+
+private:
+//======================
+// for internal.
 	//----------------------
 	// forward declaration
 	class Request;
@@ -24,8 +53,7 @@ class AsyncWorker {
 		Progress,
 		Exit
 	};
-
-public:
+	
 	//----------------------
 	// argments index.
 	enum ArgIndex{
@@ -46,107 +74,76 @@ public:
 	// Destructor
 	// [v8 context ]
 	virtual ~AsyncWorker();
-
 	//----------------------
 	// Execute loop
 	// [non-v8     ]
-	virtual void ExecuteLoop();
-
-public:
+	void ExecuteLoop();
 	//----------------------
 	// Notify progress
-	//   messaging form "aProgress.Send()" in "Execute()"
 	// [v8 context ]
-	virtual void ProgressCallback(std::string& aString);
-
+	void ProgressCallback(std::string& aString);
 	//----------------------
 	// Notify finish
 	// [v8 context ]
-	virtual void FinishedCallback();
-
+	void FinishedCallback();
 	//----------------------
 	// Get worker id
 	inline int WorkerId() const { return _workerid; }
 
-private:
+
 	//----------------------
 	// Send Message to v8 context
-	//   "aRequest" will be free by internal process.
 	// [non-v8     ]
 	void SendAsyncMessage(Request* aRequest);
-	
 	//----------------------
 	// Abort Request
 	// [v8 context ]
 	void AbortRequest();
-	
 	//----------------------
 	// Tick
 	// [v8 context ]
 	void Tick();
-	
 	//----------------------
-	// Timer Start
+	// On Async Message
 	// [v8 context ]
-	void AsyncMsg();
-	
+	void OnAsyncMessage();
 	//----------------------
 	// Start
 	// [v8 context ]
 	virtual void Start();
-	
 	//----------------------
 	// Destroy
 	// [v8 context ]
 	virtual void Destroy();
 
 //======================
-//Static menbers.
-public:
-	//----------------------
-	// form java script
-	// [v8 context ]
-	static NAN_METHOD(asyncCommand);
-	
-	//----------------------
-	// form java script
-	// [v8 context ]
-	static NAN_METHOD(asyncAbortCommand);
-	
-private:
-	//----------------------
-	// Abort
-	// [v8 context ]
-	static void Abort(int aWorkerId);
-	
+//call backs.
 	//----------------------
 	// Tick cb
 	// [v8 context ]
 #if (NODE_MODULE_VERSION < NODE_0_12_MODULE_VERSION)
-	static void Tick_timer_cb(uv_timer_t* aHandle, int/*UNUSED*/);
+	static void TickTimerCb(uv_timer_t* aHandle, int/*UNUSED*/);
 #else
-	static void Tick_timer_cb(uv_timer_t* aHandle);
+	static void TickTimerCb(uv_timer_t* aHandle);
 #endif
-
 	//----------------------
 	// Request cb to start timer
 	// [v8 context ]
 #if (NODE_MODULE_VERSION < NODE_0_12_MODULE_VERSION)
-	static void RequestAsyncMsg(uv_async_t* aHandle, int/*UNUSED*/);
+	static void RequestAsyncMessageCb(uv_async_t* aHandle, int/*UNUSED*/);
 #else
-	static void RequestAsyncMsg(uv_async_t* aHandle);
+	static void RequestAsyncMessageCb(uv_async_t* aHandle);
 #endif
-	
 	//----------------------
 	// Handle closed cb
 	// [v8 context ]
 	static void CloseCb(uv_handle_t* aHandle);
-	
 	//----------------------
 	// Execute loop
 	// [non-v8     ]
 	static void DoWork(void* aObject);
-	
+//======================
+//others.
 	//----------------------
 	// lines(file)->vector
 	static void ReadFile(
@@ -163,6 +160,8 @@ private:
 //======================
 // attributes.
 private:
+								// for protected GB.
+	v8::Persistent<v8::Object> _myself;
 	NanCallback* _progress;		// progress callback
 	NanCallback* _finish;		// finish call back callback
 	int _interval;				// interval
@@ -189,7 +188,7 @@ private:
 	std::queue<Request*>		_msg_queue;
 
 	//----------------------
-	// internal request define
+	// internal request
 	class Request {
 	public:
 		Request(AsyncMsgType aMsgType, std::string& aString);
@@ -204,8 +203,8 @@ private:
 
 	//----------------------
 	// static members
-								// global workerpool
-	static std::map<int, AsyncWorker*> workerpool;
+								// for "new" template register
+	static v8::Persistent<v8::Function> _constructor;
 	static int shareworkerid;	// global workerid
 };
 
