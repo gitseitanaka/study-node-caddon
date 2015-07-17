@@ -221,11 +221,11 @@ describe('study-caddon-string-echo', function () {
   });
 
   describe('new', function () {
-	  var workerid;
-	  before(function(done) {
-			workerid = 0;
-			done();
-		});
+    var workerid;
+    before(function(done) {
+      workerid = 0;
+      done();
+    });
     it ('new', function () {
       var worker = new stringecho.AsyncWorker(testfilename, 100,
                 function(id, name) {  // process
@@ -235,10 +235,10 @@ describe('study-caddon-string-echo', function () {
                   assert.equal(called, 0);
                 }
               );
-			workerid = worker.id();
-			assert.equal(worker.id(), workerid);
-			workerid++;
-			worker = null;
+      workerid = worker.id();
+      assert.equal(worker.id(), workerid);
+      workerid++;
+      worker = null;
     });
     it ('(new)', function () {
       var worker = stringecho.AsyncWorker(testfilename, 100,
@@ -249,15 +249,15 @@ describe('study-caddon-string-echo', function () {
                   assert.equal(called, 0);
                 }
               );
-			assert.equal(worker.id(), workerid);
-			workerid++;
-			worker = null;
+      assert.equal(worker.id(), workerid);
+      workerid++;
+      worker = null;
     });
-	});
+  });
 
 
   describe('start-stop', function () {
-		var workerid = 0;
+    var workerid = 0;
     it ('(   )->stop(none call cb)', function () {
       var called = 0;
       var worker = stringecho.AsyncWorker(testfilename, 100,
@@ -284,7 +284,7 @@ describe('study-caddon-string-echo', function () {
                 }
               );
       assert.equal(worker.start(), workerid);
-			workerid++;
+      workerid++;
       assert.equal(worker.stop(), 0);
     });
     it ('start->start->stop(none call cb)', function () {
@@ -297,7 +297,9 @@ describe('study-caddon-string-echo', function () {
                   assert.equal(called, 0);
                 }
               );
-      worker.start();
+      assert.equal(worker.start(), workerid);
+      workerid++;
+      assert.equal(worker.start(), -1);
       assert.equal(worker.stop(), 0);
     });
 
@@ -305,7 +307,7 @@ describe('study-caddon-string-echo', function () {
       var interval = 100 /* ms */;
       var times = 1;
       var called = 0;
-      gid = stringecho.start(testfilename, interval,
+      var worker = stringecho.AsyncWorker(testfilename, interval,
                 function(id, name) {  // process
                   assert.equal(namearray[called], name);
                   called++;
@@ -315,8 +317,10 @@ describe('study-caddon-string-echo', function () {
                   done();
                 }
               );
+      assert.equal(worker.start(), workerid);
+      workerid++;
       setTimeout(function () {
-        stringecho.stop(gid);
+        worker.stop();
       }, interval * times + (interval / 2));
     });
     
@@ -324,20 +328,21 @@ describe('study-caddon-string-echo', function () {
       var interval = 100 /* ms */;
       var times = 20;
       var called = 0;
-      gid = stringecho.start(testfilename, interval,
+      var worker = stringecho.AsyncWorker(testfilename, interval,
                 function(id, name) {  // process
                   assert.equal(namearray[called % namearray.length], name);
-                  assert.equal(gid, id);
+                  assert.equal(worker.id(), id);
                   called++;
                 },
                 function(id) {        // finish
                   //assert.equal(called, times);
-                  assert.equal(gid, id);
+                  assert.equal(worker.id(), id);
                   done();
                 }
               );
+      assert.equal(worker.start(), workerid);
       setTimeout(function () {
-        stringecho.stop(gid);
+        worker.stop();
       }, interval * times);
     });
 
@@ -352,19 +357,20 @@ describe('study-caddon-string-echo', function () {
           range = 4;
       }
       var func = function() {
-          return function(aGid) {
+          return function() {
                   var _called = 0;
-                  var _gid = stringecho.start(testfilename, interval,
+                  var worker = stringecho.AsyncWorker(testfilename, interval,
                             function(id, name) {  // process
+                              //console.log('---', id, _called, name);
                               assert.equal(namearray[_called % namearray.length], name);
-                              assert.equal(aGid, id);
+                              //assert.equal(aGid, id);
                               
                               _called++;
                             },
                             function(id) {        // finish
                               count++;
                               //console.log('***', id, _called, times);
-                              assert.equal(aGid, id);
+                              //assert.equal(aGid, id);
                               assert.ok(_called >= (times - range), 'count error');
                               assert.ok(_called <= times + range, 'count error');
                               if (count >= tester) {
@@ -374,17 +380,19 @@ describe('study-caddon-string-echo', function () {
                           );
                   
                     setTimeout(function () {
-                      stringecho.stop(aGid);
+                      worker.stop();
                     }, interval * times);
-                  return _gid;
+                    worker.start();
+                  return worker;
             };
           };
       
-      var nextgid = gid + 1;
+//      var nextgid = gid + 1;
       for (var i = 0; i < tester; i++) {
         //console.log('');
         var testfunc = func();
-        assert.equal(nextgid + i ,testfunc(nextgid + i));
+        testfunc();
+        //assert.equal(nextgid + i ,testfunc());
       }
     });
   });
