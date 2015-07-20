@@ -386,13 +386,12 @@ describe('study-caddon-string-echo', function () {
                   return worker;
             };
           };
-      
-//      var nextgid = gid + 1;
+      //?????
+      workerid++;
       for (var i = 0; i < tester; i++) {
-        //console.log('');
         var testfunc = func();
-        testfunc();
-        //assert.equal(nextgid + i ,testfunc());
+        var worker = testfunc();
+        assert.equal(workerid + i , worker.id());
       }
     });
   });
