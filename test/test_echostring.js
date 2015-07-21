@@ -386,7 +386,6 @@ describe('study-caddon-string-echo', function () {
                   return worker;
             };
           };
-      //?????
       workerid++;
       for (var i = 0; i < tester; i++) {
         var testfunc = func();
