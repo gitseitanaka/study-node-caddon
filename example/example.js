@@ -1,7 +1,7 @@
 var stringecho = require('../index.js');
 
 var interval = 100 /* ms */;
-var testfilename = 'teststrings.txt';
+var testfilename = 'example/teststrings.txt';
 
 var nowtimestring = function() {
             var now = new Date();

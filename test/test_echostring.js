@@ -227,6 +227,7 @@ describe('study-caddon-string-echo', function () {
       done();
     });
     it ('new', function () {
+      var called = 0;
       var worker = new stringecho.AsyncWorker(testfilename, 100,
                 function(id, name) {  // process
                   called++;
@@ -240,7 +241,9 @@ describe('study-caddon-string-echo', function () {
       workerid++;
       worker = null;
     });
+
     it ('(new)', function () {
+      var called = 0;
       var worker = stringecho.AsyncWorker(testfilename, 100,
                 function(id, name) {  // process
                   called++;
@@ -254,8 +257,6 @@ describe('study-caddon-string-echo', function () {
       worker = null;
     });
   });
-
-
   describe('start-stop', function () {
     var workerid = 0;
     it ('(   )->stop(none call cb)', function () {
@@ -369,7 +370,7 @@ describe('study-caddon-string-echo', function () {
                             },
                             function(id) {        // finish
                               count++;
-                              //console.log('***', id, _called, times);
+                              //console.log('***', id, _called, times, count, tester);
                               //assert.equal(aGid, id);
                               assert.ok(_called >= (times - range), 'count error');
                               assert.ok(_called <= times + range, 'count error');
