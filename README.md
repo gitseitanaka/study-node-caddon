@@ -9,6 +9,7 @@
     - uv_async
     - uv_timer
     - uv_sem
+    - node::ObjectWrap
     - etc..
     
     It is not recommended to think web-scale.
@@ -19,34 +20,9 @@
     - nan@1.8.4
     - VS2013/2012(2008(mybe)), gcc version 4.8.4 (Ubuntu 4.8.4-2ubuntu1~14.04)
 
-## APIs
-
-### start(aFilePath, aInterval, aCbProgress, aCbFinish) ###
-
-+   `aFilePath` :
-    the path of the file that string has been described. as format below:
-
-		String 1
-		String 2
-		   :
-		String n
-
-+   `aInterval` :
-    interval[ms]
-
-+   `aCbProgress` : arg0 is a handle id. arg1 is a echoed string.
-
-+   `aCbFinish` : notify finished. arg0 is a handle id.
-
-+   `Return` : a handle id.
-
-### stop(aHandleId)###
-
-+   `aHandleId` : a handle id.
-
 ## Sample
 
-* see test/*.js
+* see example/example.js
 
 ## Setting
 	
@@ -89,6 +65,10 @@
 
 
 ## Version
+
+* draft 0.71
+    - Using 'node::ObjectWrap'.
+    - add example.
 
 * draft 0.70
     - Using 'uv_thread' (unuse 'NanAsyncProgressWorker')
