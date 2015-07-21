@@ -47,7 +47,8 @@ AsyncWorker::AsyncWorker(
   _setting_filepath(aSettingPath),
   _workerid(AsyncWorker::shareworkerid),
   _requestedAbort(false),
-  _handle_count(0)
+  _handle_count(0),
+  _worker_handle(0)
 {
 	DBPRINT("[Enter]", __FUNCTION__);
 	DBPRINTA("[Trace]%s\n", __FUNCTION__);
@@ -58,13 +59,8 @@ AsyncWorker::AsyncWorker(
 	memset(&_mutex, 0, sizeof(_mutex));
 	uv_mutex_init(&_mutex);
 
-	uv_loop_t* loop = uv_default_loop();
 	memset(&_tick_handle, 0, sizeof(_tick_handle));
 	memset(&_async_handle, 0, sizeof(_async_handle));
-	uv_timer_init(loop, &_tick_handle);
-	uv_async_init(loop, &_async_handle, RequestAsyncMessageCb);
-	_tick_handle.data = (void*)this;	_handle_count++;
-	_async_handle.data = (void*)this;	_handle_count++;
 
 	if (AsyncWorker::shareworkerid < 0) {
 		AsyncWorker::shareworkerid = 0;
@@ -181,7 +177,7 @@ void AsyncWorker::Tick() {
 void AsyncWorker::OnAsyncMessage() {
 	DBPRINT("[Enter]", __FUNCTION__);
 	uv_mutex_lock(&_mutex);
-	DBPRINTA(" @@@@@ %s queue size is [%d]\n", __FUNCTION__, _msg_queue.size());
+	DBPRINTA(" @@@@@ %s queue size is [%lu]\n", __FUNCTION__, (int)_msg_queue.size());
 	while (!_msg_queue.empty()) {
 		Request* req = _msg_queue.front();
 		_msg_queue.pop();
@@ -214,6 +210,12 @@ void AsyncWorker::OnAsyncMessage() {
 // [v8 context ]
 int AsyncWorker::Start() {
 	if ( _myself.IsEmpty() ) {							// no-start
+		uv_loop_t* loop = uv_default_loop();
+		uv_timer_init(loop, &_tick_handle);
+		uv_async_init(loop, &_async_handle, RequestAsyncMessageCb);
+		_tick_handle.data = (void*)this;	_handle_count++;
+		_async_handle.data = (void*)this;	_handle_count++;
+
 		NanAssignPersistent(_myself, NanObjectWrapHandle(this));
 		uv_thread_create(&_worker_handle, DoWork, this);
 		return WorkerId();
@@ -248,8 +250,8 @@ int AsyncWorker::AbortRequest() {
 // Destroy
 // [v8 context ]
 void AsyncWorker::Destroy() {
-	uv_thread_join(&_worker_handle);
 	if (! _myself.IsEmpty()) {
+		uv_thread_join(&_worker_handle);
 		NanDisposePersistent(_myself);
 	}
 }
