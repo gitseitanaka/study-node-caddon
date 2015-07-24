@@ -15,11 +15,10 @@ var nowtimestring = function () {
   return nows;
 };
 
-var echo1 = new AsyncWorker(
+var echo1 = AsyncWorker(
   testfilename,         // strings file path
   150,                  // interval[ms]
   function (id, name) {  // progress cb
-    var now = new Date();
     console.log('[ECO1]', id, name, nowtimestring());
   },
   function (id) {        // finish
@@ -27,11 +26,10 @@ var echo1 = new AsyncWorker(
   }
   );
 
-var echo2 = new AsyncWorker(
+var echo2 = AsyncWorker(
   testfilename,         // strings file path
   100,                  // interval[ms]
   function (id, name) {  // progress cb
-    var now = new Date();
     console.log('[ECO2]', id, name, nowtimestring());
   },
   function (id) {        // finish
