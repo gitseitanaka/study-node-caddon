@@ -28,15 +28,15 @@ private:
 	// [v8 context ]
 	static NAN_METHOD(CmdNew);
 	//----------------------
-	// "start"
+	// "_start"
 	// [v8 context ]
 	static NAN_METHOD(CmdStart);
 	//----------------------
-	// "stop"
+	// "_stop"
 	// [v8 context ]
 	static NAN_METHOD(CmdStop);
 	//----------------------
-	// "id"
+	// "_id"
 	// [v8 context ]
 	static NAN_METHOD(CmdGetId);
 
@@ -53,7 +53,7 @@ private:
 		Progress,
 		Exit
 	};
-	
+
 	//----------------------
 	// argments index.
 	enum ArgIndex{
@@ -151,7 +151,7 @@ private:
 	static void ReadFile(
 				const std::string& aFilePath,
 				std::queue<std::string>& oList);
-	
+
 	//----------------------
 	// Trim
 	// http://program.station.ez-net.jp/special/handbook/cpp/string/trim.asp
@@ -185,7 +185,7 @@ private:
 	int _handle_count;			// handle count
 
 	uv_thread_t _worker_handle;	// worker thread
-								
+
 								// internal message(async) queue
 	std::queue<Request*>		_msg_queue;
 
