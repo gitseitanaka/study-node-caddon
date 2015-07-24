@@ -5,24 +5,28 @@
 
 * This repository is for my private study of 'node.js(native module)'.
 * Using the following:
-    - uv_thread (unuse uv_queue_work)
+    - nan.h
+    - uv_thread (unused uv_queue_work)
     - uv_async
     - uv_timer
     - uv_sem
     - node::ObjectWrap
+    - EventEmitter
     - etc..
     
     It is not recommended to think web-scale.
+    
     See <http://nikhilm.github.io/uvbook/threads.html#threads>
 
 * Other
     - node v0.12.5 (0.10.26)
     - nan@1.8.4
-    - VS2013/2012(2008(mybe)), gcc version 4.8.4 (Ubuntu 4.8.4-2ubuntu1~14.04)
+    - VS2013/2012(2008(maybe)), gcc version 4.8.4 (Ubuntu 4.8.4-2ubuntu1~14.04)
 
-## Sample
+## Example
 
 * see example/example.js
+
 
 ## Setting
 	
@@ -56,7 +60,7 @@
 	
 	# 5. setting project properties
 	#    [Debug] -> [Command]     node.exe path
-	#            -> [CommandAarg] want to execute js
+	#            -> [CommandArg] want to execute js
 	#            -> [Work Dir]    ".."
 	
 	# 6. edit path "Release" to "Debug" at lib/js/echostring.js
@@ -71,11 +75,11 @@
     - add example.
 
 * draft 0.70
-    - Using 'uv_thread' (unuse 'NanAsyncProgressWorker')
+    - Using 'uv_thread' (unused 'NanAsyncProgressWorker')
 * draft 0.60
     - Using 'NanAsyncProgressWorker'
 
-## Lisence
+## Licence
 
 * MIT
 
