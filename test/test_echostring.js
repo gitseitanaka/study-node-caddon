@@ -1,5 +1,6 @@
 var assert = require("power-assert");
-var AsyncWorker = require('../index.js');
+var bindings = require('bindings')('studyechostring');
+var AsyncWorker = bindings.AsyncWorker;
 
 var testfilename;
 var namearray;
