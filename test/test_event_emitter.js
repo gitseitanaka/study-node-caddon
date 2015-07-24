@@ -21,7 +21,66 @@ describe('study-caddon-string-echo events', function () {
     rl.resume();
     done();
   });
-
+  describe('args error', function () {
+    describe('arg 0', function () {
+      it('setting file is null', function () {
+        assert.throws(
+          function () {
+            AsyncWorker(null, 100);
+          });
+      });
+      it('setting file is undef', function () {
+        assert.throws(
+          function () {
+            AsyncWorker(undef, 100);
+          });
+      });
+      it('setting file is length 0', function () {
+        assert.throws(
+          function () {
+            AsyncWorker('', 100);
+          });
+      });
+    });
+    describe('arg 1', function () {
+      it('interval is 0', function () {
+        assert.throws(
+          function () {
+            AsyncWorker(testfilename, 0);
+          });
+      });
+      it('interval is -1', function () {
+        assert.throws(
+          function () {
+            AsyncWorker(testfilename, -1);
+          });
+      });
+      it('interval is null', function () {
+        assert.throws(
+          function () {
+            AsyncWorker(testfilename, null);
+          });
+      });
+      it('interval is undef', function () {
+        assert.throws(
+          function () {
+            AsyncWorker(testfilename, undef);
+          });
+      });
+      it('interval string', function () {
+        assert.throws(
+          function () {
+            AsyncWorker(testfilename, '100');
+          });
+      });
+      it('not exist', function () {
+        assert.throws(
+          function () {
+            AsyncWorker("xxxx", '100');
+          });
+      });
+    });
+  });
   describe('start-stop', function () {
     var workerid = 0;
     it('(   )->stop(none call cb)', function () {
