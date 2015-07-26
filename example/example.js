@@ -17,25 +17,25 @@ var echo1 = AsyncWorker(
   testfilename,             // strings file path
   150);                     // interval[ms]
 echo1.on('progress',
-      function (id, name) { // progress cb
-        console.log('[ECO1]', id, name, nowtimestring());
-      });
+  function (id, name) { // progress cb
+    console.log('[ECO1]', id, name, nowtimestring());
+  });
 echo1.on('end',
-      function (id) {       // finish cb
-        console.log('[ECO1]', id, '****');
-      });
+  function (id) {       // finish cb
+    console.log('[ECO1]', id, '****');
+  });
 
 var echo2 = AsyncWorker(
   testfilename,             // strings file path
   100);                     // interval[ms]
                             // progress cb
 echo2.on('progress', function (id, name) {
-    console.log('[ECO2]', id, name, nowtimestring());
-  });
-                            // finish cb
+  console.log('[ECO2]', id, name, nowtimestring());
+});
+// finish cb
 echo2.on('end', function (id) {
-    console.log('[ECO2]', id, '****');
-  });
+  console.log('[ECO2]', id, '****');
+});
 
 echo2.start();
 echo1.start();

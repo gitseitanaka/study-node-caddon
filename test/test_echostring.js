@@ -12,7 +12,7 @@ describe('study-caddon-string-echo', function () {
     var fs = require('fs'),
       readline = require('readline'),
       rs = fs.ReadStream(testfilename),
-      rl = readline.createInterface({ 'input': rs, 'output': {} });
+      rl = readline.createInterface({'input': rs, 'output': {}});
     rl.on('line', function (line) {
       var name = line.trim();
       if (name.length !== 0) {
@@ -35,7 +35,7 @@ describe('study-caddon-string-echo', function () {
                 },
                 function (id) {
                 }
-                );
+              );
             });
         });
         it('setting file is undef', function () {
@@ -46,7 +46,7 @@ describe('study-caddon-string-echo', function () {
                 },
                 function (id) {
                 }
-                );
+              );
             });
         });
         it('setting file is length 0', function () {
@@ -57,7 +57,7 @@ describe('study-caddon-string-echo', function () {
                 },
                 function (id) {
                 }
-                );
+              );
             });
         });
         it('setting file is number', function () {
@@ -68,7 +68,7 @@ describe('study-caddon-string-echo', function () {
                 },
                 function (id) {
                 }
-                );
+              );
             });
         });
       });
@@ -81,7 +81,7 @@ describe('study-caddon-string-echo', function () {
                 },
                 function (id) {
                 }
-                );
+              );
             });
         });
         it('interval is -1', function () {
@@ -92,7 +92,7 @@ describe('study-caddon-string-echo', function () {
                 },
                 function (id) {
                 }
-                );
+              );
             });
         });
         it('interval is null', function () {
@@ -103,7 +103,7 @@ describe('study-caddon-string-echo', function () {
                 },
                 function (id) {
                 }
-                );
+              );
             });
         });
         it('interval is undef', function () {
@@ -114,7 +114,7 @@ describe('study-caddon-string-echo', function () {
                 },
                 function (id) {
                 }
-                );
+              );
             });
         });
         it('interval string', function () {
@@ -125,7 +125,7 @@ describe('study-caddon-string-echo', function () {
                 },
                 function (id) {
                 }
-                );
+              );
             });
         });
       });
@@ -137,7 +137,7 @@ describe('study-caddon-string-echo', function () {
                 null,
                 function (id) {
                 }
-                );
+              );
             });
         });
         it('progress cb is undef', function () {
@@ -147,7 +147,7 @@ describe('study-caddon-string-echo', function () {
                 undef,
                 function (id) {
                 }
-                );
+              );
             });
         });
         it('progress cb is string', function () {
@@ -157,7 +157,7 @@ describe('study-caddon-string-echo', function () {
                 'test',
                 function (id) {
                 }
-                );
+              );
             });
         });
         it('progress cb is number', function () {
@@ -167,7 +167,7 @@ describe('study-caddon-string-echo', function () {
                 1,
                 function (id) {
                 }
-                );
+              );
             });
         });
       });
@@ -179,7 +179,7 @@ describe('study-caddon-string-echo', function () {
                 function (id) {
                 },
                 null
-                );
+              );
             });
         });
         it('finished cb is undef', function () {
@@ -189,7 +189,7 @@ describe('study-caddon-string-echo', function () {
                 function (id) {
                 },
                 undef
-                );
+              );
             });
         });
         it('finished cb is string', function () {
@@ -199,7 +199,7 @@ describe('study-caddon-string-echo', function () {
                 function (id) {
                 },
                 'test'
-                );
+              );
             });
         });
         it('finished cb is number', function () {
@@ -209,7 +209,7 @@ describe('study-caddon-string-echo', function () {
                 function (id) {
                 },
                 1
-                );
+              );
             });
         });
       });
@@ -236,7 +236,7 @@ describe('study-caddon-string-echo', function () {
         function (id) {        // finish
           assert.equal(called, 0);
         }
-        );
+      );
       workerid = worker.id();
       assert.equal(worker.id(), workerid);
       workerid++;
@@ -252,7 +252,7 @@ describe('study-caddon-string-echo', function () {
         function (id) {        // finish
           assert.equal(called, 0);
         }
-        );
+      );
       assert.equal(worker.id(), workerid);
       workerid++;
       worker = null;
@@ -269,7 +269,7 @@ describe('study-caddon-string-echo', function () {
         function (id) {        // finish
           assert.equal(called, 0);
         }
-        );
+      );
 
       assert.equal(worker.stop(), -1);
       assert.equal(worker.stop(), -1);
@@ -284,7 +284,7 @@ describe('study-caddon-string-echo', function () {
         function (id) {        // finish
           assert.equal(called, 0);
         }
-        );
+      );
       assert.equal(worker.start(), workerid);
       workerid++;
       assert.equal(worker.stop(), 0);
@@ -298,7 +298,7 @@ describe('study-caddon-string-echo', function () {
         function (id) {        // finish
           assert.equal(called, 0);
         }
-        );
+      );
       assert.equal(worker.start(), workerid);
       workerid++;
       assert.equal(worker.start(), -1);
@@ -318,7 +318,7 @@ describe('study-caddon-string-echo', function () {
           assert.equal(called, 1);
           done();
         }
-        );
+      );
       assert.equal(worker.start(), workerid);
       workerid++;
       setTimeout(function () {
@@ -341,7 +341,7 @@ describe('study-caddon-string-echo', function () {
           assert.equal(worker.id(), id);
           done();
         }
-        );
+      );
       assert.equal(worker.start(), workerid);
       setTimeout(function () {
         worker.stop();
@@ -366,7 +366,7 @@ describe('study-caddon-string-echo', function () {
               //console.log('---', id, _called, name);
               assert.equal(namearray[_called % namearray.length], name);
               //assert.equal(aGid, id);
-                              
+
               _called++;
             },
             function (id) {        // finish
@@ -379,7 +379,7 @@ describe('study-caddon-string-echo', function () {
                 done();
               }
             }
-            );
+          );
 
           setTimeout(function () {
             worker.stop();

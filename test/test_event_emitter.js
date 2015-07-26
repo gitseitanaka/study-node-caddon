@@ -11,7 +11,7 @@ describe('study-caddon-string-echo events', function () {
     var fs = require('fs'),
       readline = require('readline'),
       rs = fs.ReadStream(testfilename),
-      rl = readline.createInterface({ 'input': rs, 'output': {} });
+      rl = readline.createInterface({'input': rs, 'output': {}});
     rl.on('line', function (line) {
       var name = line.trim();
       if (name.length !== 0) {
@@ -87,11 +87,11 @@ describe('study-caddon-string-echo events', function () {
       var called = 0;
       var worker = AsyncWorker(testfilename, 100);
       worker.on('progress', function (id, name) {  // process
-          called++;
-        });
+        called++;
+      });
       worker.on('end', function (id) {            // finish
-          assert.equal(called, 0);
-        });
+        assert.equal(called, 0);
+      });
 
       assert.equal(worker.stop(), -1);
       assert.equal(worker.stop(), -1);
@@ -101,10 +101,10 @@ describe('study-caddon-string-echo events', function () {
       var called = 0;
       var worker = AsyncWorker(testfilename, 100);
       worker.on('progress', function (id, name) {  // process
-          called++;
+        called++;
       });
       worker.on('end', function (id) {        // finish
-          assert.equal(called, 0);
+        assert.equal(called, 0);
       });
       assert.equal(worker.start(), workerid);
       workerid++;
@@ -114,10 +114,10 @@ describe('study-caddon-string-echo events', function () {
       var called = 0;
       var worker = AsyncWorker(testfilename, 100);
       worker.on('progress', function (id, name) {  // process
-          called++;
+        called++;
       });
       worker.on('end', function (id) {        // finish
-          assert.equal(called, 0);
+        assert.equal(called, 0);
       });
       assert.equal(worker.start(), workerid);
       workerid++;
@@ -131,12 +131,12 @@ describe('study-caddon-string-echo events', function () {
       var called = 0;
       var worker = AsyncWorker(testfilename, interval);
       worker.on('progress', function (id, name) {  // process
-          assert.equal(namearray[called], name);
-          called++;
+        assert.equal(namearray[called], name);
+        called++;
       });
       worker.on('end', function (id) {        // finish
-          assert.equal(called, 1);
-          done();
+        assert.equal(called, 1);
+        done();
       });
       assert.equal(worker.start(), workerid);
       workerid++;
@@ -151,14 +151,14 @@ describe('study-caddon-string-echo events', function () {
       var called = 0;
       var worker = AsyncWorker(testfilename, interval);
       worker.on('progress', function (id, name) {  // process
-          assert.equal(namearray[called % namearray.length], name);
-          assert.equal(worker.id(), id);
-          called++;
-       });
-       worker.on('end', function (id) {        // finish
-          //assert.equal(called, times);
-          assert.equal(worker.id(), id);
-          done();
+        assert.equal(namearray[called % namearray.length], name);
+        assert.equal(worker.id(), id);
+        called++;
+      });
+      worker.on('end', function (id) {        // finish
+        //assert.equal(called, times);
+        assert.equal(worker.id(), id);
+        done();
       });
       assert.equal(worker.start(), workerid);
       setTimeout(function () {
@@ -181,21 +181,21 @@ describe('study-caddon-string-echo events', function () {
           var _called = 0;
           var worker = AsyncWorker(testfilename, interval);
           worker.on('progress', function (id, name) {  // process
-              //console.log('---', id, _called, name);
-              assert.equal(namearray[_called % namearray.length], name);
-              //assert.equal(aGid, id);
-                              
-              _called++;
+            //console.log('---', id, _called, name);
+            assert.equal(namearray[_called % namearray.length], name);
+            //assert.equal(aGid, id);
+
+            _called++;
           });
           worker.on('end', function (id) {        // finish
-              count++;
-              //console.log('***', id, _called, times, count, tester);
-              //assert.equal(aGid, id);
-              assert.ok(_called >= (times - range), 'count error');
-              assert.ok(_called <= times + range, 'count error');
-              if (count >= tester) {
-                done();
-              }
+            count++;
+            //console.log('***', id, _called, times, count, tester);
+            //assert.equal(aGid, id);
+            assert.ok(_called >= (times - range), 'count error');
+            assert.ok(_called <= times + range, 'count error');
+            if (count >= tester) {
+              done();
+            }
           });
 
           setTimeout(function () {
