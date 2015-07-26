@@ -14,9 +14,7 @@
     - EventEmitter
     - etc..
     
-    It is not recommended to think web-scale.
-    
-    See <http://nikhilm.github.io/uvbook/threads.html#threads>
+    It is not recommended to think web-scale. See <http://nikhilm.github.io/uvbook/threads.html#threads>.
 
 * Other
     - node v0.12.5 (0.10.26)
@@ -25,8 +23,9 @@
 
 ## Example
 
-* see example/example.js
-
+	# see "example/example.js".
+	node example.js
+    
 
 ## Setting
 	
@@ -69,6 +68,9 @@
 
 
 ## Version
+
+* draft 0.72
+    - Using 'EventEmitter'.
 
 * draft 0.71
     - Using 'node::ObjectWrap'.
