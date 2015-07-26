@@ -14,7 +14,7 @@ var nowtimestring = function () {
 };
 
 var echo1 = AsyncWorker(
-  testfilename,           // strings file path
+  testfilename,             // strings file path
   150);                     // interval[ms]
 echo1.on('progress',
       function (id, name) { // progress cb
@@ -26,7 +26,7 @@ echo1.on('end',
       });
 
 var echo2 = AsyncWorker(
-  testfilename,           // strings file path
+  testfilename,             // strings file path
   100);                     // interval[ms]
                             // progress cb
 echo2.on('progress', function (id, name) {
