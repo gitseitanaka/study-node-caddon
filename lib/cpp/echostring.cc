@@ -1,4 +1,4 @@
-﻿﻿#include "echostring.h"
+﻿#include "echostring.h"
 
 #include <thread>
 #include <fstream>

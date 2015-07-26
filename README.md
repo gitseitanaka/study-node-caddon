@@ -69,7 +69,7 @@
 
 ## Version
 
-* draft 0.72
+* draft 0.73
     - Using 'EventEmitter'.
 
 * draft 0.71

@@ -1,4 +1,4 @@
-﻿﻿#ifndef __ECHOSTRING_H__
+﻿#ifndef __ECHOSTRING_H__
 #define __ECHOSTRING_H__
 
 #include <nan.h>
