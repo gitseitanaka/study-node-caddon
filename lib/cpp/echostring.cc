@@ -1,4 +1,4 @@
-﻿#include "echostring.h"
+﻿﻿#include "echostring.h"
 
 #include <thread>
 #include <fstream>
@@ -262,16 +262,16 @@ void AsyncWorker::Init(Handle<Object> aExports)
 {
 	DBPRINT("[V8   ]", __FUNCTION__);
 	// NanScope();  <- no need
-	
+
 	// Prepare constructor template
 	Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>(CmdNew);
     tpl->SetClassName(NanNew("AsyncWorker"));
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
-	
+
     // Prototype
-    NanSetPrototypeTemplate(tpl, "start", NanNew<FunctionTemplate>(CmdStart));
-    NanSetPrototypeTemplate(tpl, "stop", NanNew<FunctionTemplate>(CmdStop));
-	NanSetPrototypeTemplate(tpl, "id", NanNew<FunctionTemplate>(CmdGetId));
+    NanSetPrototypeTemplate(tpl, "_start", NanNew<FunctionTemplate>(CmdStart));
+    NanSetPrototypeTemplate(tpl, "_stop", NanNew<FunctionTemplate>(CmdStop));
+	NanSetPrototypeTemplate(tpl, "_id", NanNew<FunctionTemplate>(CmdGetId));
 
 	// Return created object via the arg.
 	NanAssignPersistent<Function>(_constructor, tpl->GetFunction());
@@ -319,7 +319,7 @@ NAN_METHOD(AsyncWorker::CmdNew) {
 			std::string(filename->operator*()),
 			// interval
 			args[AsyncWorker::ArgInterval]->Int32Value());
-		
+
 		obj->Wrap(args.This());
 		NanReturnThis();
 	}
