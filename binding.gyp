@@ -1,7 +1,7 @@
 {
     "targets": [{
         "target_name": "studyechostring",
-        "sources": [ "lib/cpp/echostring.cc",
+        "sources": [ "lib/cpp/AsyncWorker.cc",
 					 "lib/cpp/addon.cc"
 					  ],
         "include_dirs" : [

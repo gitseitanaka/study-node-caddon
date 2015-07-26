@@ -1,4 +1,4 @@
-﻿#include "echostring.h"
+﻿#include "AsyncWorker.h"
 
 #include <thread>
 #include <fstream>
