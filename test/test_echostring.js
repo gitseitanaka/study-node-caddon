@@ -1,6 +1,6 @@
 var assert = require("power-assert");
 var bindings = require('bindings')('studyechostring');
-var AsyncWorker = bindings.AsyncWorker;
+var asyncWorker = AsyncWorker = bindings.AsyncWorker;
 
 var testfilename;
 var namearray;
@@ -237,15 +237,15 @@ describe('study-caddon-string-echo', function () {
           assert.equal(called, 0);
         }
       );
-      workerid = worker.id();
-      assert.equal(worker.id(), workerid);
+      workerid = worker._id();
+      assert.equal(worker._id(), workerid);
       workerid++;
       worker = null;
     });
 
     it('(new)', function () {
       var called = 0;
-      var worker = AsyncWorker(testfilename, 100,
+      var worker = asyncWorker(testfilename, 100,
         function (id, name) {  // process
           called++;
         },
@@ -253,7 +253,7 @@ describe('study-caddon-string-echo', function () {
           assert.equal(called, 0);
         }
       );
-      assert.equal(worker.id(), workerid);
+      assert.equal(worker._id(), workerid);
       workerid++;
       worker = null;
     });
@@ -262,7 +262,7 @@ describe('study-caddon-string-echo', function () {
     var workerid = 0;
     it('(   )->stop(none call cb)', function () {
       var called = 0;
-      var worker = AsyncWorker(testfilename, 100,
+      var worker = asyncWorker(testfilename, 100,
         function (id, name) {  // process
           called++;
         },
@@ -271,13 +271,13 @@ describe('study-caddon-string-echo', function () {
         }
       );
 
-      assert.equal(worker.stop(), -1);
-      assert.equal(worker.stop(), -1);
-      workerid = worker.id() + 1;
+      assert.equal(worker._stop(), -1);
+      assert.equal(worker._stop(), -1);
+      workerid = worker._id() + 1;
     });
     it('start->stop(none call cb)', function () {
       var called = 0;
-      var worker = AsyncWorker(testfilename, 100,
+      var worker = asyncWorker(testfilename, 100,
         function (id, name) {  // process
           called++;
         },
@@ -285,13 +285,13 @@ describe('study-caddon-string-echo', function () {
           assert.equal(called, 0);
         }
       );
-      assert.equal(worker.start(), workerid);
+      assert.equal(worker._start(), workerid);
       workerid++;
-      assert.equal(worker.stop(), 0);
+      assert.equal(worker._stop(), 0);
     });
     it('start->start->stop(none call cb)', function () {
       var called = 0;
-      var worker = AsyncWorker(testfilename, 100,
+      var worker = asyncWorker(testfilename, 100,
         function (id, name) {  // process
           called++;
         },
@@ -299,17 +299,17 @@ describe('study-caddon-string-echo', function () {
           assert.equal(called, 0);
         }
       );
-      assert.equal(worker.start(), workerid);
+      assert.equal(worker._start(), workerid);
       workerid++;
-      assert.equal(worker.start(), -1);
-      assert.equal(worker.stop(), 0);
+      assert.equal(worker._start(), -1);
+      assert.equal(worker._stop(), 0);
     });
 
     it('start->stop(called cb 1 time)', function (done) {
       var interval = 100 /* ms */;
       var times = 1;
       var called = 0;
-      var worker = AsyncWorker(testfilename, interval,
+      var worker = asyncWorker(testfilename, interval,
         function (id, name) {  // process
           assert.equal(namearray[called], name);
           called++;
@@ -319,10 +319,10 @@ describe('study-caddon-string-echo', function () {
           done();
         }
       );
-      assert.equal(worker.start(), workerid);
+      assert.equal(worker._start(), workerid);
       workerid++;
       setTimeout(function () {
-        worker.stop();
+        worker._stop();
       }, interval * times + (interval / 2));
     });
 
@@ -330,21 +330,21 @@ describe('study-caddon-string-echo', function () {
       var interval = 100 /* ms */;
       var times = 20;
       var called = 0;
-      var worker = AsyncWorker(testfilename, interval,
+      var worker = asyncWorker(testfilename, interval,
         function (id, name) {  // process
           assert.equal(namearray[called % namearray.length], name);
-          assert.equal(worker.id(), id);
+          assert.equal(worker._id(), id);
           called++;
         },
         function (id) {        // finish
           //assert.equal(called, times);
-          assert.equal(worker.id(), id);
+          assert.equal(worker._id(), id);
           done();
         }
       );
-      assert.equal(worker.start(), workerid);
+      assert.equal(worker._start(), workerid);
       setTimeout(function () {
-        worker.stop();
+        worker._stop();
       }, interval * times);
     });
 
@@ -361,7 +361,7 @@ describe('study-caddon-string-echo', function () {
       var func = function () {
         return function () {
           var _called = 0;
-          var worker = AsyncWorker(testfilename, interval,
+          var worker = asyncWorker(testfilename, interval,
             function (id, name) {  // process
               //console.log('---', id, _called, name);
               assert.equal(namearray[_called % namearray.length], name);
@@ -382,9 +382,9 @@ describe('study-caddon-string-echo', function () {
           );
 
           setTimeout(function () {
-            worker.stop();
+            worker._stop();
           }, interval * times);
-          worker.start();
+          worker._start();
           return worker;
         };
       };
@@ -392,7 +392,7 @@ describe('study-caddon-string-echo', function () {
       for (var i = 0; i < tester; i++) {
         var testfunc = func();
         var worker = testfunc();
-        assert.equal(workerid + i, worker.id());
+        assert.equal(workerid + i, worker._id());
       }
     });
   });

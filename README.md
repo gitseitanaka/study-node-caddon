@@ -61,21 +61,15 @@
 	#    [Debug] -> [Command]     node.exe path
 	#            -> [CommandArg] want to execute js
 	#            -> [Work Dir]    ".."
-	
-	# 6. edit path "Release" to "Debug" at lib/js/echostring.js
-	//module.exports = require('../../build/Release/studyechostring');
-	module.exports = require('../../build/Debug/studyechostring');
 
 
 ## Version
 
 * draft 0.74
     - Using 'EventEmitter'.
-
 * draft 0.71
     - Using 'node::ObjectWrap'.
     - add example.
-
 * draft 0.70
     - Using 'uv_thread' (unused 'NanAsyncProgressWorker')
 * draft 0.60
