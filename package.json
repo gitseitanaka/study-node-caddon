@@ -1,12 +1,13 @@
 {
   "name": "study-caddon-echo-string",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.0.0",
+  "description": "to study c-addon for myself",
   "main": "index.js",
   "scripts": {
-    "test": "node ./node_modules/mocha/bin/mocha --require intelli-espower-loader --timeout 5000"
+    "test": "node ./node_modules/mocha/bin/mocha --require intelli-espower-loader --timeout 5000",
+    "install": "node-gyp rebuild"
   },
-  "author": "",
+  "author": "gitseitanaka",
   "license": "MIT",
   "directories": {
     "test": "test/*.js"
@@ -19,5 +20,19 @@
     "intelli-espower-loader": "^0.7.0",
     "mocha": "^2.2.5",
     "power-assert": "^0.11.0"
-  }
+  },
+  "gypfile": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gitseitanaka/study-node-caddon.git"
+  },
+  "keywords": [
+    "node",
+    "caddon",
+    "event"
+  ],
+  "bugs": {
+    "url": "https://github.com/gitseitanaka/study-node-caddon/issues"
+  },
+  "homepage": "https://github.com/gitseitanaka/study-node-caddon#readme"
 }

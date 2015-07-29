@@ -17,9 +17,9 @@
     It is not recommended to think web-scale. See <http://nikhilm.github.io/uvbook/threads.html#threads>.
 
 * Other
-    - node v0.12.5 (0.10.26)
+    - node v0.12.5 / 0.10.26
     - nan@1.8.4
-    - VS2013/2012(2008(maybe)), gcc version 4.8.4 (Ubuntu 4.8.4-2ubuntu1~14.04)
+    - VS2015/2013/2012/2008, gcc version 4.8.4 (Ubuntu 4.8.4-2ubuntu1~14.04)
 
 ## Example
 
@@ -34,6 +34,7 @@
 	cd study-node-caddon
 	
 	# install
+	#   if VS2012 or VS2008, add "--msvs_version=2012" or "--msvs_version=2008" 
 	npm install
 	
 	# test
@@ -65,6 +66,8 @@
 
 ## Version
 
+* 0.0.0
+   - publish.
 * draft 0.74
     - Using 'EventEmitter'.
 * draft 0.71
@@ -77,5 +80,24 @@
 
 ## Licence
 
-* MIT
-
+	The MIT License (MIT)
+	
+	Copyright (c) 2015 gitseitanaka
+	
+	Permission is hereby granted, free of charge, to any person obtaining a copy
+	of this software and associated documentation files (the "Software"), to deal
+	in the Software without restriction, including without limitation the rights
+	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	copies of the Software, and to permit persons to whom the Software is
+	furnished to do so, subject to the following conditions:
+	
+	The above copyright notice and this permission notice shall be included in
+	all copies or substantial portions of the Software.
+	
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+	THE SOFTWARE.
