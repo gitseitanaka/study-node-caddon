@@ -66,13 +66,13 @@
 
 ## Version
 
-* 0.0.0
-   - publish.
+* 0.0.0/0.0.1
+   - Published test.
 * draft 0.74
     - Using 'EventEmitter'.
 * draft 0.71
     - Using 'node::ObjectWrap'.
-    - add example.
+    - Add example.
 * draft 0.70
     - Using 'uv_thread' (unused 'NanAsyncProgressWorker')
 * draft 0.60
