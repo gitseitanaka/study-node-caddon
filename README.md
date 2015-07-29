@@ -67,7 +67,7 @@
 ## Version
 
 * 0.0.0/0.0.1
-   - Published test.
+   - Publishing test.
 * draft 0.74
     - Using 'EventEmitter'.
 * draft 0.71
