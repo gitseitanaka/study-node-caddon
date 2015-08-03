@@ -1,6 +1,6 @@
 {
   "name": "study-caddon-echo-string",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "to study c-addon for myself",
   "main": "index.js",
   "scripts": {
