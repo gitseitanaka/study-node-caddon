@@ -22,12 +22,61 @@
     - VS2015/2013/2012/2008, gcc version 4.8.4 (Ubuntu 4.8.4-2ubuntu1~14.04)
 
 ## Example
-
-	# see "example/example.js".
-	node example.js
+	
+	$ # install
+    $ #   if VS2012 or VS2008, add "--msvs_version=2012" or "--msvs_version=2008" 
+	$ npm install study-caddon-echo-string
+	$ cat strings.txt
+	1 TEST 1
+    2 TEST 2
+    3 TEST 3
+	$ cat example.js  
+    var strEcho = require('study-caddon-echo-string');
+    var testfilename = process.argv[2];
     
+    var echo = strEcho(
+      testfilename,         // strings file path
+      150);                 // interval[ms]
+    echo.on('progress',
+      function (id, name) { // progress cb
+        console.log(nowtimestring(), id, '-> \'' + name + '\'');
+      });
+    echo.on('end',
+      function (id) {       // finish cb
+      console.log(nowtimestring(), id, 'finished');
+      });
+    echo.start();
+    setTimeout(function () {
+      console.log(nowtimestring(), echo.id(), 'call stop');
+      echo.stop();
+    }, 2000);
+    
+    function nowtimestring() {
+      var now = new Date();
+      return ('0' + now.getHours()).slice(-2) + ':' +
+        ('0' + now.getMinutes()).slice(-2)    + ':' +
+        ('0' + now.getSeconds()).slice(-2)    + '.' +
+        ('000' + now.getMilliseconds()).slice(-3);
+    };
+    $ node example.js strings.txt
+    09:16:13.118 0 -> '1 TEST 1'
+    09:16:13.261 0 -> '2 TEST 2'
+    09:16:13.411 0 -> '3 TEST 3'
+    09:16:13.562 0 -> '1 TEST 1'
+    09:16:13.712 0 -> '2 TEST 2'
+    09:16:13.862 0 -> '3 TEST 3'
+    09:16:14.012 0 -> '1 TEST 1'
+    09:16:14.162 0 -> '2 TEST 2'
+    09:16:14.312 0 -> '3 TEST 3'
+    09:16:14.463 0 -> '1 TEST 1'
+    09:16:14.613 0 -> '2 TEST 2'
+    09:16:14.763 0 -> '3 TEST 3'
+    09:16:14.914 0 -> '1 TEST 1'
+    09:16:14.958 0 call stop
+    09:16:14.959 0 finished
+    $
 
-## Setting
+## Setting(for dev)
 	
 	# clone
 	git clone https://github.com/gitseitanaka/study-node-caddon.git
