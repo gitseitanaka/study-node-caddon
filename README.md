@@ -16,6 +16,9 @@
     
     It is not recommended to think web-scale. See <http://nikhilm.github.io/uvbook/threads.html#threads>.
 
+* Test
+    - mocha@2.2.5 with power-assert@0.11.0
+
 * Other
     - node v0.12.5 / 0.10.26
     - nan@1.8.4
@@ -115,6 +118,8 @@
 
 ## Version
 
+* 0.0.2
+   - Update example in README.md
 * 0.0.0/0.0.1
    - Publishing test.
 * draft 0.74

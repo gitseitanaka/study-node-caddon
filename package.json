@@ -27,9 +27,9 @@
     "url": "git+https://github.com/gitseitanaka/study-node-caddon.git"
   },
   "keywords": [
-    "node",
     "caddon",
-    "event"
+    "eventemitter",
+    "mocha"
   ],
   "bugs": {
     "url": "https://github.com/gitseitanaka/study-node-caddon/issues"
